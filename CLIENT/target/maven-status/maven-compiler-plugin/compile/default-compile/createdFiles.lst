@@ -1,0 +1,4 @@
+client/MessageSendGet.class
+macros/MacroDefinitions.class
+client/ClientSocket.class
+client/ServerCommunication.class

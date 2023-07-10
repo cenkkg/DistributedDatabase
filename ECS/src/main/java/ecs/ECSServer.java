@@ -1,0 +1,109 @@
+package ecs;
+
+import macros.MacroDefinitions;
+
+import java.io.*;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+public class ECSServer {
+    // Get logger
+    private static final Logger logger = Logger.getLogger(ECSServer.class.getName());
+    private static Map<List<String>, List<String>> metadata = new HashMap<>();
+    private static MessageSendGet messageSendGet = new MessageSendGet();
+
+    public static class ServerPinger extends Thread{
+
+        @Override
+        public void run() {
+            while(true) {
+                for (Map.Entry<List<String>, List<String>> entry: metadata.entrySet()) {
+                    String address = entry.getKey().get(0);
+                    int port = Integer.parseInt(entry.getKey().get(1));
+                    try (Socket socketForDestination = new Socket(address, port);
+                         OutputStream outputStreamForDestination = socketForDestination.getOutputStream();
+                         InputStream inputStreamForDestination = socketForDestination.getInputStream()) {
+                        ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStreamForDestination);
+                        messageSendGet.sendMessage(objectOutputStream, "ISREACHABLE");
+
+                        Thread.sleep(700);
+
+                        int availableBytes = inputStreamForDestination.available();
+                        if (availableBytes == 0) {
+                            System.out.println("Server at " + address + ":" + port + " is unreachable.");
+                        }
+                    }
+                    catch (UnknownHostException e) {
+                        throw new RuntimeException(e);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    System.out.println("Thread interrupted.");
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+            }
+        }
+    }
+
+    public static void main(String[] args)  {
+        try {
+
+            // Getting MACROS
+            MacroDefinitions macroDefinitions = new MacroDefinitions();
+
+            for (int i = 0; i < args.length; i += 2) {
+                String flag = args[i];
+                String value = args[i + 1];
+                switch (flag) {
+                    case "-p":
+                        macroDefinitions.setServerPort(Integer.parseInt(value));
+                        continue;
+                    case "-a":
+                        macroDefinitions.setListenAddress(value);
+                        continue;
+                }
+            }
+
+
+            // Create ServerSocker and Socket. Get InputStream and OutputStream
+            ServerSocket serverSocket = new ServerSocket(macroDefinitions.getServerPort());
+
+            List<String> serverIpAddresses = new ArrayList<>(); // IP1:PORT1, IP2:PORT2 ....
+            boolean firstConnection = true;
+
+            ServerPinger serverPinger = new ServerPinger();
+            serverPinger.start();
+
+            while(true){
+                Socket clientServerSocket = serverSocket.accept();
+                if(firstConnection){
+                    ServerConnection serverConnection = new ServerConnection(clientServerSocket, macroDefinitions, serverIpAddresses, metadata);
+                    serverConnection.start();
+                    firstConnection = false;
+                } else{
+                    ServerConnection serverConnection = new ServerConnection(clientServerSocket, macroDefinitions, null, null);
+                    serverConnection.start();
+                }
+            }
+        } catch (Exception exception) {
+            logger.log(Level.WARNING, "Error, connection can not be established!");
+        }
+    }
+}
