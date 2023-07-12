@@ -1,6 +1,7 @@
 package server;
 
 import com.google.gson.Gson;
+import database.DBConnector;
 import macros.MacroDefinitions;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -14,6 +15,9 @@ import java.io.Reader;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -54,52 +58,12 @@ public class Server {
                     case "-p":
                         macroDefinitions.setServerPort(Integer.parseInt(value));
                         continue;
-                    case "-d":
-                        // Create Directory
-                        File directory = new File(value);
-                        if (directory.mkdir()) {
-                            // First time running server.
-                            // Create File - Primary Memory
-                            File filePrimary = new File(value + "/data.json");
-                            filePrimary.createNewFile();
-
-                            // Write a empty array to file
-                            try (BufferedWriter writer = new BufferedWriter(new FileWriter(value + "/data.json"))) {
-                                String jsonArray = "[]";
-                                writer.write(jsonArray);
-                                writer.flush();
-                            }
-                            macroDefinitions.setMemoryFilePath(value + "/data.json");
-                        }
-                        else {
-                            // Not First time running server.
-                            macroDefinitions.setMemoryFilePath(value + "/data.json");
-                            Gson gson = new Gson();
-                            try (Reader reader = new FileReader(macroDefinitions.getMemoryFilePath())) {
-                                Data[] jsonArray = gson.fromJson(reader, Data[].class);
-                                List<Data> newDataArray = new ArrayList<>();
-                                for (Data dataInMemory : jsonArray) {
-                                    newDataArray.add(dataInMemory);
-                                }
-                                if(macroDefinitions.getCacheSize() >= newDataArray.size()){
-                                    for(int eachDataInMemory = 0; eachDataInMemory < newDataArray.size(); eachDataInMemory++){
-                                        cache[eachDataInMemory] = newDataArray.get(eachDataInMemory);
-                                    }
-                                }else{
-                                    for(int eachDataInMemory = 0; eachDataInMemory < macroDefinitions.getCacheSize(); eachDataInMemory++){
-                                        cache[eachDataInMemory] = newDataArray.get(eachDataInMemory);
-                                    }
-                                }
-                            }
-                        }
-                        continue;
                     case "-c":
                         macroDefinitions.setCacheSize(Integer.parseInt(value));
                         continue;
                     case "-a":
                         macroDefinitions.setListenAddress(value);
                         continue;
-
                     case "-ll":
                         macroDefinitions.setLoglevel(Level.parse(value));
                         continue;
@@ -144,6 +108,13 @@ public class Server {
                         messageSendGet.sendMessage(outputStreamForTargetServer, "GIVEMEMYDATA " + macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort());
                         String getDataCount = messageSendGet.getMessage(inputStreamForTargetServer);
                         List<String> dataGetFromTarget = new ArrayList<>();
+                        for(int eachResponse = 0; eachResponse < Integer.parseInt(getDataCount); eachResponse++) {
+                            dataGetFromTarget.add(messageSendGet.getMessage(inputStreamForTargetServer));
+                        }
+
+                        DBConnector dbConnector = new DBConnector();
+                        Statement statement     = dbConnector.getStatement(dbConnector.getDBConnection());
+                        ResultSet resultSet     = statement.executeQuery("Select * from " + responseTargetIPandPORT.split(":")[0] + "_" + responseTargetIPandPORT.split(":")[1]);
                         for(int eachResponse = 0; eachResponse < Integer.parseInt(getDataCount); eachResponse++) {
                             dataGetFromTarget.add(messageSendGet.getMessage(inputStreamForTargetServer));
                         }
