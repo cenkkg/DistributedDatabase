@@ -13,7 +13,9 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,9 +45,7 @@ public class Server {
 
             // Create CACHE
             Data[] cache = new Data[macroDefinitions.getCacheSize()];
-            for(int i = 0; i < macroDefinitions.getCacheSize(); i++){
-                cache[i] = null;
-            }
+            Arrays.fill(cache, null);
 
             for (int i = 0; i < args.length; i += 2) {
                 String flag = args[i];
@@ -68,8 +68,6 @@ public class Server {
                                 String jsonArray = "[]";
                                 writer.write(jsonArray);
                                 writer.flush();
-                            } catch (IOException e) {
-                                e.printStackTrace();
                             }
                             macroDefinitions.setMemoryFilePath(value + "/data.json");
                         }
@@ -92,8 +90,6 @@ public class Server {
                                         cache[eachDataInMemory] = newDataArray.get(eachDataInMemory);
                                     }
                                 }
-                            } catch (Exception e) {
-                                throw new RuntimeException(e);
                             }
                         }
                         continue;
@@ -140,16 +136,10 @@ public class Server {
                 MessageSendGet messageSendGet = new MessageSendGet();
                 messageSendGet.sendMessage(outputStreamForECS, "JOIN " + macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort());
                 String responseTargetIPandPORT = messageSendGet.getMessage(inputStreamForECS);
-
                 if(!responseTargetIPandPORT.equals("-")){
                     try (Socket socketForTargetServer = new Socket(responseTargetIPandPORT.split(":")[0], Integer.parseInt(responseTargetIPandPORT.split(":")[1]));
                          OutputStream outputStreamForTargetServer = socketForTargetServer.getOutputStream();
                          InputStream inputStreamForTargetServer = socketForTargetServer.getInputStream()) {
-
-                        // BEFORE DATA TRANSFER FROM TARGET, ADD WRITE LOCK
-                        messageSendGet.sendMessage(outputStreamForTargetServer, "WAITWRITE");
-                        String waitResponse = messageSendGet.getMessage(inputStreamForTargetServer);
-                        if(waitResponse.equals("OK")) {} else { throw new Exception("ERROR CASE."); }
 
                         messageSendGet.sendMessage(outputStreamForTargetServer, "GIVEMEMYDATA " + macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort());
                         String getDataCount = messageSendGet.getMessage(inputStreamForTargetServer);
@@ -203,7 +193,7 @@ public class Server {
                             try (BufferedWriter writer = new BufferedWriter(new FileWriter(macroDefinitions.getMemoryFilePath(), false))) {
                                 writer.write(jsonToWriteFile);
                                 writer.flush();
-                            } catch (IOException e) { throw new Exception(e.getMessage()); }
+                            }
 
 
                             // Save them to Cache --------------------------------------------------------------------------------
@@ -243,17 +233,8 @@ public class Server {
                                     firstEmptyIndex++;
                                 }
                             }
-                            else{// continue
-                            }
                         }
-                        catch (Exception e) {throw new RuntimeException(e);}
-
-                        // AFTER DATA TRANSFER FROM TARGET, REMOVE WRITE LOCK
-                        messageSendGet.sendMessage(outputStreamForTargetServer, "WAITWRITEEXIT");
-                        String waitResponse2 = messageSendGet.getMessage(inputStreamForTargetServer);
-                        if(waitResponse2.equals("OK")) {} else {throw new Exception("ERROR CASE.");}
                     }
-                    catch (IOException e) { e.printStackTrace(); }
                 }
                 
                 // SEND ECS TO SEND NEW METADATA TO ALL SERVERS ------------------------------------------------------------
@@ -262,17 +243,16 @@ public class Server {
                 // open server socket temp
                 ServerSocket serverSocket = new ServerSocket(macroDefinitions.getServerPort());
                 Socket clientSocket = serverSocket.accept();
-                String metadataPreMessageFromECS = messageSendGet.getMessage(clientSocket.getInputStream()); // "ECSSENDMETADATA"
+                messageSendGet.getMessage(clientSocket.getInputStream()); // "ECSSENDMETADATA"
                 ObjectInputStream objectInputStream = new ObjectInputStream(clientSocket.getInputStream());
                 metadata = (Map<List<String>, List<String>>) objectInputStream.readObject(); // "-" -> 0000000..00/FFFFF....FFF
                 serverSocket.close();
-            } catch (Exception e) {e.printStackTrace();}
+            }
             // ****************************************************************************************************
 
 
             // ****************************************************************************************************
             // MS3
-            // SHUTDOWN HOOK
             // Register a shutdown hook to perform actions when the JVM is shutting down
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 try (Socket socketForECS = new Socket(macroDefinitions.getBootstrapServerIP(), macroDefinitions.getBootstrapServerPort());
@@ -287,10 +267,6 @@ public class Server {
                              OutputStream outputStreamForTargetServer = socketForTargetServer.getOutputStream();
                              InputStream inputStreamForTargetServer = socketForTargetServer.getInputStream()) {
 
-                            messageSendGet.sendMessage(outputStreamForTargetServer, "WAITWRITE");
-                            String waitResponse = messageSendGet.getMessage(inputStreamForTargetServer);
-                            if (waitResponse.equals("OK")) {} else {throw new Exception("ERROR CASE.");}
-
                             // SEND TARGET a message to take our all data ================================
                             List<Data> newDataArray = new ArrayList<>();
                             Gson gson = new Gson();
@@ -299,23 +275,18 @@ public class Server {
                                 for (Data dataInMemory : jsonArray) {
                                     newDataArray.add(dataInMemory);
                                 }
-                            } catch (Exception e) {throw new RuntimeException(e);}
+                            }
 
                             messageSendGet.sendMessage(outputStreamForTargetServer, "SOMEISEXITING " + newDataArray.size());
                             for(int eachDataForSend = 0; eachDataForSend < newDataArray.size(); eachDataForSend++){
                                 messageSendGet.sendMessage(outputStreamForTargetServer, newDataArray.get(eachDataForSend).getKey() + " " + newDataArray.get(eachDataForSend).getValue());
                             }
-
-                            messageSendGet.sendMessage(outputStreamForTargetServer, "WAITWRITEEXIT");
-                            String waitResponse2 = messageSendGet.getMessage(inputStreamForTargetServer);
-                            if (waitResponse2.equals("OK")) {} else {throw new Exception("ERROR CASE.");}
-
                             // SEND ECS TO SEND NEW METADATA TO ALL SERVERS ------------------------------------------------------------
                             messageSendGet.sendMessage(outputStreamForECS, "DATATRANSFERISDONE");
                         }
                     }
-                } catch (Exception e){
-                    e.printStackTrace();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
                 // Stop accepting new connections ------------------------------------------------
                 acceptConnection.set(false);
@@ -324,11 +295,10 @@ public class Server {
                     try {
                         thread.join();
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        throw new RuntimeException(e);
                     }
                 }
             }));
-            // SHUTDOWN HOOK
             // ****************************************************************************************************
 
 
@@ -337,19 +307,17 @@ public class Server {
             ServerSocket serverSocket = new ServerSocket(macroDefinitions.getServerPort());
             while(acceptConnection.get()){
                 Socket clientSocket = serverSocket.accept();
+                ClientConnection clientConnection = null;
                 if(firstConnectionOrNot){
-                    ClientConnection clientConnection = new ClientConnection(clientSocket, cache, macroDefinitions, metadata);
-                    clientConnection.start();
-                    threadList.add(clientConnection);
+                    clientConnection = new ClientConnection(clientSocket, cache, macroDefinitions, metadata);
                     firstConnectionOrNot = false;
                 }
                 else{
-                    ClientConnection clientConnection = new ClientConnection(clientSocket, null, macroDefinitions, null);
-                    clientConnection.start();
-                    threadList.add(clientConnection);
+                    clientConnection = new ClientConnection(clientSocket, null, macroDefinitions, null);
                 }
+                clientConnection.start();
+                threadList.add(clientConnection);
             }
-        } catch (Exception exception) { // logger.log(Level.WARNING, "Error, connection can not be established!");
-            }
+        } catch (Exception exception) {}
     }
 }
