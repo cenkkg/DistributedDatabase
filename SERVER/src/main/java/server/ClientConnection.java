@@ -18,23 +18,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import com.google.gson.Gson;
+import helperMethods.Helper;
+import lombok.Getter;
+import lombok.Setter;
 import macros.MacroDefinitions;
 
+@Getter
+@Setter
 public class ClientConnection extends Thread{
-
-    // Get logger
-    private static final Logger logger = Logger.getLogger(Server.class.getName());
 
     // NON-STATIC VARIABLES
     MacroDefinitions macroDefinitions;
     Socket clientSocket;
     boolean isOpen;
     MessageSendGet messageSendGet = new MessageSendGet();
+    Helper helper = new Helper();
 
     // STATIC VARIABLES
     static  Data[] cache;
     static Map<List<String>, List<String>> metadata;
-    static boolean writeLock = false;
+
 
     // Constructor of ClientConnection ------------------------------------------------------------------------
     /**
@@ -50,14 +53,6 @@ public class ClientConnection extends Thread{
 
         if(cache == null){} else{this.cache = cache;}
         if(metadata == null){} else{this.metadata = metadata;}
-
-        /*
-        FileHandler fileHandler = new FileHandler(macroDefinitions.getLogDirectory());
-        SimpleFormatter formatter = new SimpleFormatter();
-        fileHandler.setFormatter(formatter);
-        logger.addHandler(fileHandler);
-        logger.setLevel(macroDefinitions.getLoglevel());
-        */
     }
 
     // Helper Methods -----------------------------------------------------------------------------------------
@@ -123,35 +118,6 @@ public class ClientConnection extends Thread{
         }
     }
 
-    /**
-     * Log message
-     *
-     * @param logMessage
-     * @return
-     */
-    public synchronized void logMethod(String logMessage) throws IOException {
-        // logger.log(macroDefinitions.getLoglevel(), logMessage);
-    }
-
-    /**
-     * Getter of ClientSocket
-     *
-     * @param
-     * @return Socket
-     */
-    public Socket getClientSocket() {
-        return clientSocket;
-    }
-
-    /**
-     * Getter of Metadata
-     *
-     * @param
-     * @return Map<List<String>, List<String>>
-     */
-    public static Map<List<String>, List<String>> getMetadata() {
-        return metadata;
-    }
     // Methods for update-get-delete data in cache&memory ------------------------------------------------------
     /**
      * Put data, save or update data. To cache and memory. Also send one data from cache to memory if cache is full.
@@ -170,7 +136,6 @@ public class ClientConnection extends Thread{
                     addData.setFrequency(1);
                     cache[eachIndex] = addData;
                     updateMemory(addData);
-                    logMethod("putData - " + key + " " + value);
                     return ("put_success " + key);
                 }
                 else if (cache[eachIndex] != null && cache[eachIndex].getKey().equals(key)) {
@@ -196,7 +161,6 @@ public class ClientConnection extends Thread{
                         cache[eachIndex].setTimestamp(String.valueOf(System.currentTimeMillis()));
                         cache[eachIndex].setFrequency(cache[eachIndex].getFrequency() + 1);
                         updateMemory(cache[eachIndex]);
-                        logMethod("putData - " + key + " " + value);
                         return ("put_update " + key);
                     }
                 }
@@ -223,13 +187,11 @@ public class ClientConnection extends Thread{
                     if(requestedData == null){
                         cache[macroDefinitions.getCacheSize() - 1].setFrequency(1);
                         updateMemory(cache[macroDefinitions.getCacheSize() - 1]);
-                        logMethod("putData - " + key + " " + value);
                         return ("put_success " + key);
                     }
                     else{
                         cache[macroDefinitions.getCacheSize() - 1].setFrequency(requestedData.getFrequency() + 1);
                         updateMemory(cache[macroDefinitions.getCacheSize() - 1]);
-                        logMethod("putData - " + key + " " + value);
                         return ("put_update " + key);
                     }
                 }
@@ -250,26 +212,21 @@ public class ClientConnection extends Thread{
                     if(requestedData == null){
                         cache[macroDefinitions.getCacheSize() - 1].setFrequency(1);
                         updateMemory(cache[macroDefinitions.getCacheSize() - 1]);
-                        logMethod("putData - " + key + " " + value);
                         return ("put_success " + key);
                     }
                     else{
                         cache[macroDefinitions.getCacheSize() - 1].setFrequency(requestedData.getFrequency() + 1);
                         updateMemory(cache[macroDefinitions.getCacheSize() - 1]);
-                        logMethod("putData - " + key + " " + value);
                         return ("put_update " + key);
                     }
                 }
             }
             catch (IOException e) {
-                logMethod("putData - error");
                 return "put_error";
             }
         } catch (Exception exception){
-            logMethod("putData - error");
             return "put_error";
         }
-        logMethod("putData - error");
         return "put_error";
     }
 
@@ -283,7 +240,6 @@ public class ClientConnection extends Thread{
         try{
             for(int eachIndex = 0; eachIndex < macroDefinitions.getCacheSize(); eachIndex++){
                 if(cache[eachIndex] == null){
-                    logMethod("getData - error");
                     return ("get_error " + key);
                 }
                 else if(cache[eachIndex] != null && cache[eachIndex].getKey().equals(key)){
@@ -300,7 +256,6 @@ public class ClientConnection extends Thread{
                                 cache[eachElementInCache].setTimestamp(currentTimestamp);
                                 cache[eachElementInCache].setFrequency(currentFrequency);
                                 updateMemory(cache[eachElementInCache]);
-                                logMethod("getData - " + key + " " + cache[eachElementInCache].getValue());
                                 return ("get_success " + key + " " + cache[eachElementInCache].getValue());
                             }
                         }
@@ -311,7 +266,6 @@ public class ClientConnection extends Thread{
                         cache[eachIndex].setTimestamp(String.valueOf(System.currentTimeMillis()));
                         cache[eachIndex].setFrequency(cache[eachIndex].getFrequency() + 1);
                         updateMemory(cache[eachIndex]);
-                        logMethod("getData - " + key + " " + cache[eachIndex].getValue());
                         return ("get_success " + key + " " + cache[eachIndex].getValue());
                     }
                 }
@@ -342,7 +296,6 @@ public class ClientConnection extends Thread{
                         cache[macroDefinitions.getCacheSize() - 1].setTimestamp(String.valueOf(System.currentTimeMillis()));
                         cache[macroDefinitions.getCacheSize() - 1].setFrequency(requestedData.getFrequency() + 1);
                         updateMemory(cache[macroDefinitions.getCacheSize() - 1]);
-                        logMethod("getData - " + key + " " + cache[macroDefinitions.getCacheSize() - 1].getValue());
                         return ("get_success " + key + " " + requestedData.getValue());
                     }
                     else if (macroDefinitions.getCachePolicy().equals("LFU")) {
@@ -361,19 +314,15 @@ public class ClientConnection extends Thread{
                         cache[macroDefinitions.getCacheSize() - 1].setTimestamp(String.valueOf(System.currentTimeMillis()));
                         cache[macroDefinitions.getCacheSize() - 1].setFrequency(requestedData.getFrequency() + 1);
                         updateMemory(cache[macroDefinitions.getCacheSize() - 1]);
-                        logMethod("getData - " + key + " " + cache[macroDefinitions.getCacheSize() - 1].getValue());
                         return ("get_success " + key + " " + requestedData.getValue());
                     }
                 }
             } catch (IOException e) {
-                logMethod("getData - error");
                 return ("get_error " + key);
             }
         } catch(Exception exception){
-            logMethod("getData - error");
             return ("get_error " + key);
         }
-        logMethod("getData - error");
         return ("get_error " + key);
     }
 
@@ -387,7 +336,6 @@ public class ClientConnection extends Thread{
         try {
             for (int eachIndex = 0; eachIndex < macroDefinitions.getCacheSize(); eachIndex++) {
                 if (cache[eachIndex] == null) {
-                    logMethod("deleteData - " + key);
                     return ("delete_error " + key);
                 }
                 else if (cache[eachIndex] != null && cache[eachIndex].getKey().equals(key)) {
@@ -411,7 +359,6 @@ public class ClientConnection extends Thread{
                         if(newDataArray.size() == 0){
                             String jsonToWriteFile = "[]";
                             writeToFile(jsonToWriteFile);
-                            logMethod("deleteData - " + key);
                             return ("delete_success " + key + " " + deletedValue);
                         }
                         else{
@@ -423,7 +370,6 @@ public class ClientConnection extends Thread{
                             }
                             String jsonToWriteFile = gson.toJson(newDataArray);
                             writeToFile(jsonToWriteFile);
-                            logMethod("deleteData - " + key);
                             return ("delete_success " + key + " " + deletedValue);
                         }
                     }
@@ -444,21 +390,17 @@ public class ClientConnection extends Thread{
                     }
                 }
                 if (requestedData == null) {
-                    logMethod("deleteData - error");
                     return ("delete_error " + key);
                 } else {
                     String jsonToWriteFile = gson.toJson(newDataArray);
                     writeToFile(jsonToWriteFile);
-                    logMethod("deleteData - " + key);
                     return ("delete_success " + key + " " + requestedData.getValue());
                 }
             }
             catch (Exception exception) {
-                logMethod("deleteData - error");
                 return "delete_error " + key;
             }
         } catch (Exception e) {
-            logMethod("deleteData - error");
             return "delete_error " + key;
         }
     }
@@ -592,20 +534,6 @@ public class ClientConnection extends Thread{
     }
 
     /**
-     * Change write lock's value
-     *
-     * @param inp
-     * @return
-     */
-    public synchronized void changeWriteLock(int inp) {
-        if(inp == 0){
-            writeLock = false;
-        } else{
-            writeLock = true;
-        }
-    }
-
-    /**
      *
      *
      * @param
@@ -697,10 +625,10 @@ public class ClientConnection extends Thread{
         try (Reader reader = new FileReader(macroDefinitions.getMemoryFilePath())) {
             try (Socket socketForFirstReplicaServer = new Socket(oneNextServerAddress.split(":")[0], Integer.valueOf(oneNextServerAddress.split(":")[1]));
                  OutputStream outputStreamForFirstReplicaServer = socketForFirstReplicaServer.getOutputStream()){
-                    Data[] jsonArray = gson.fromJson(reader, Data[].class);
-                    for (Data dataInMemory : jsonArray) {
-                        messageSendGet.sendMessage(outputStreamForFirstReplicaServer, "put_replication " + dataInMemory.getKey() + " " + dataInMemory.getValue());
-                    }
+                Data[] jsonArray = gson.fromJson(reader, Data[].class);
+                for (Data dataInMemory : jsonArray) {
+                    messageSendGet.sendMessage(outputStreamForFirstReplicaServer, "put_replication " + dataInMemory.getKey() + " " + dataInMemory.getValue());
+                }
             }
         }
         catch (Exception e) { throw new RuntimeException(e); }
@@ -894,65 +822,35 @@ public class ClientConnection extends Thread{
         try{
             inputStream = clientSocket.getInputStream();
             outputStream = clientSocket.getOutputStream();
-            // messageSendGet.sendMessage(outputStream, "Hello Client!"); // initial message
             while(isOpen){
                 try{
                     String getMessage = messageSendGet.getMessage(inputStream);
                     String keywordCommand = getMessage.split(" ")[0];
                     switch (keywordCommand){
                         case "put":
-                            if(writeLock == true){
-                                messageSendGet.sendMessage(outputStream, "server_write_lock");
-                                continue;
-                            }
-                            else if(dataInRangeOrNotChecker(getMessage.split(" ")[1])){
-                                String valueFromRequest = "";
-                                for(int eachStringInRequest = 0; eachStringInRequest < getMessage.split(" ").length; eachStringInRequest++){
-                                    if(eachStringInRequest == 0 || eachStringInRequest == 1){
-                                        continue;
-                                    }
-                                    else if (eachStringInRequest == getMessage.split(" ").length - 1) {
-                                        valueFromRequest = valueFromRequest + getMessage.split(" ")[eachStringInRequest];
-                                    }
-                                    else{
-                                        valueFromRequest = valueFromRequest + getMessage.split(" ")[eachStringInRequest] + " ";
-                                    }
-                                }
+                            if(dataInRangeOrNotChecker(getMessage.split(" ")[1])){
+                                String valueFromRequest = helper.extractValue(getMessage);
                                 if(valueFromRequest.equals("null")){
                                     updateReplicas(getMessage.split(" ")[1], null, "delete");
                                     messageSendGet.sendMessage(outputStream, deleteData(getMessage.split(" ")[1]));
-                                    continue;
                                 }
-                                String returnOfPutData = putData(getMessage.split(" ")[1], valueFromRequest);
-                                updateReplicas(getMessage.split(" ")[1], valueFromRequest, "put");
-                                messageSendGet.sendMessage(outputStream, returnOfPutData);
+                                else{
+                                    String returnOfPutData = putData(getMessage.split(" ")[1], valueFromRequest);
+                                    updateReplicas(getMessage.split(" ")[1], valueFromRequest, "put");
+                                    messageSendGet.sendMessage(outputStream, returnOfPutData);
+                                }
+                                continue;
                             }
                             else{
                                 messageSendGet.sendMessage(outputStream, "server_not_responsible");
                             }
                             continue;
                         case "put_replication":
-                            if(writeLock == true){
-                                messageSendGet.sendMessage(outputStream, "server_write_lock");
-                                continue;
+                            String valueFromRequest = helper.extractValue(getMessage);
+                            if(valueFromRequest.equals("null")){
+                                deleteData(getMessage.split(" ")[1]);
                             }
-                            else {
-                                String valueFromRequest = "";
-                                for(int eachStringInRequest = 0; eachStringInRequest < getMessage.split(" ").length; eachStringInRequest++){
-                                    if(eachStringInRequest == 0 || eachStringInRequest == 1){
-                                        continue;
-                                    }
-                                    else if (eachStringInRequest == getMessage.split(" ").length - 1) {
-                                        valueFromRequest = valueFromRequest + getMessage.split(" ")[eachStringInRequest];
-                                    }
-                                    else{
-                                        valueFromRequest = valueFromRequest + getMessage.split(" ")[eachStringInRequest] + " ";
-                                    }
-                                }
-                                if(valueFromRequest.equals("null")){
-                                    deleteData(getMessage.split(" ")[1]);
-                                    continue;
-                                }
+                            else{
                                 putData(getMessage.split(" ")[1], valueFromRequest);
                             }
                             continue;
@@ -965,10 +863,6 @@ public class ClientConnection extends Thread{
                             }
                             continue;
                         case "delete":
-                            if(writeLock == true){
-                                messageSendGet.sendMessage(outputStream, "server_write_lock");
-                                continue;
-                            }
                             if(dataInRangeOrNotChecker(getMessage.split(" ")[1])){
                                 updateReplicas(getMessage.split(" ")[1], null, "delete");
                                 messageSendGet.sendMessage(outputStream, deleteData(getMessage.split(" ")[1]));
@@ -978,21 +872,7 @@ public class ClientConnection extends Thread{
                             }
                             continue;
                         case "delete_replication":
-                            if(writeLock == true){
-                                messageSendGet.sendMessage(outputStream, "server_write_lock");
-                                continue;
-                            }
-                            else {
-                                deleteData(getMessage.split(" ")[1]);
-                            }
-                            continue;
-                        case "WAITWRITE":
-                            //changeWriteLock(1);
-                            messageSendGet.sendMessage(outputStream, "OK");
-                            continue;
-                        case "WAITWRITEEXIT":
-                            // changeWriteLock(0);
-                            messageSendGet.sendMessage(outputStream, "OK");
+                            deleteData(getMessage.split(" ")[1]);
                             continue;
                         case "GIVEMEMYDATA":
                             calculateNumberOfSentDataAndSendDelete(outputStream, getMessage.split(" ")[1]);
@@ -1035,7 +915,7 @@ public class ClientConnection extends Thread{
                 }
             }
         }
-        catch (Exception exception){try {logMethod("Exception");} catch (IOException e) {throw new RuntimeException(e);}}
+        catch (Exception exception){}
         finally {
             try {
                 inputStream.close();
