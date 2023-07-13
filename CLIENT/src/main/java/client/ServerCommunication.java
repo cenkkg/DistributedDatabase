@@ -18,49 +18,13 @@ public class ServerCommunication {
     int port;
     InputStream inputStream;
     OutputStream outputStream;
-    int MESSAGE_SIZE = 1024;
-    String logLevel;
     boolean connected = false;
 
     // Metadata
     Map<List<String>, List<String>> metadataStore = new HashMap<>();
 
-    public Socket getSocket() {
-        return socket;
-    }
-
-    public String getDNS() {
-        return DNS;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public InputStream getInputStream() {
-        return inputStream;
-    }
-
-    public OutputStream getOutputStream() {
-        return outputStream;
-    }
-
-    public int getMESSAGE_SIZE() {
-        return MESSAGE_SIZE;
-    }
-
-    public String getLogLevel() {
-        return logLevel;
-    }
-
-    public Boolean getConnected() { return connected; }
-
     public void setOutputStream(OutputStream outputStream) {
         this.outputStream = outputStream;
-    }
-
-    public void setInputStream(InputStream inputStream) {
-        this.inputStream = inputStream;
     }
 
     /**
@@ -123,7 +87,6 @@ public class ServerCommunication {
             System.out.print(" / ");
             System.out.print(port);
             System.out.print("\n");
-
         }
         else{
             System.out.print("You need to be connected first.");
@@ -138,9 +101,7 @@ public class ServerCommunication {
      *
      */
     public void sendMessage(byte[] message) throws NullPointerException {
-
         try {
-
             byte[] byteArray3 = new byte[message.length + 2];
             for (int i = 0; i < (message.length); i++) {
                 byteArray3[i] = message[i];
@@ -164,9 +125,7 @@ public class ServerCommunication {
             }
             String responseOfSend = new String(byteArray, StandardCharsets.UTF_8);
             System.out.println(responseOfSend);
-
         }
-
         catch(Exception exception) {
             System.out.println("" +exception.getMessage());
             System.out.print("Error! Not connected! \n");
@@ -223,7 +182,6 @@ public class ServerCommunication {
     public void setLogLevel(String loglevel) {
         try {
             Level currentLogLevel = logger.getLevel();
-
             if (currentLogLevel != Level.parse(loglevel)) {
                 if (isAcceptedLogLevel(Level.parse(loglevel))) {
                     System.out.println("EchoClient> logLevel set from " + currentLogLevel + " to " + loglevel);
@@ -503,7 +461,6 @@ public class ServerCommunication {
         catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     /**
@@ -511,6 +468,7 @@ public class ServerCommunication {
      *
      *
      */
+
     public void getKeyrangeHelper() {
         try {
             MessageSendGet messageSendGet = new MessageSendGet();
@@ -522,6 +480,5 @@ public class ServerCommunication {
         catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 }

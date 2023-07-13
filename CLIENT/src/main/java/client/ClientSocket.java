@@ -10,15 +10,6 @@ public class ClientSocket {
     private static final Logger logger = Logger.getLogger (ClientSocket.class.getName());
     public static void main(String[] args) throws IOException, ClassNotFoundException {
 
-        // Logger set up for log file creation
-        /*
-        FileHandler fileHandler = new FileHandler("/logs/client.log");
-        SimpleFormatter formatter = new SimpleFormatter();
-        fileHandler.setFormatter(formatter);
-        logger.addHandler(fileHandler);
-        logger.setLevel(Level.ALL);
-        */
-
         ServerCommunication serverCommunication = new ServerCommunication();
 
         BufferedReader cons = new BufferedReader(new InputStreamReader(System.in));
@@ -47,8 +38,7 @@ public class ClientSocket {
                     if (tokens.length == 1) {
                         System.out.print("Unknown command \n");
                         serverCommunication.getHelp();
-                        // log(logger.getLevel(), "Send request with key: " + tokens[0] + " is not done successfully. ");
-                    }
+                       }
                     else {
                         // Drop 1st element
                         for (int i = 0; i < tokens.length - 1; i++) {
@@ -56,7 +46,6 @@ public class ClientSocket {
                         }
                         tokens = Arrays.copyOf(tokens, tokens.length - 1);
                         serverCommunication.sendMessage(String.join(" ", tokens).getBytes());
-                        // logger.log(logger.getLevel(), "Sent message: " + String.join(" ", tokens));
                     }
                     continue;
                 case "put":
