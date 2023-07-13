@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 import com.google.gson.Gson;
 import helperMethods.Helper;
 import lombok.Getter;
@@ -99,18 +98,27 @@ public class ClientConnection extends Thread{
      * @return
      */
     public synchronized void updateMemory(Data data) {
+        String ourMD5 = helper.calculateMD5(data.getKey());
+
         Gson gson = new Gson();
         try (Reader reader = new FileReader(macroDefinitions.getMemoryFilePath())) {
             Data[] jsonArray = gson.fromJson(reader, Data[].class);
             List<Data> newDataArray = new ArrayList<>();
+
+            boolean insertedOrNot = false;
             for (Data dataInMemory : jsonArray) {
-                if (dataInMemory.getKey().equals(data.getKey())) {
-                    continue;
-                } else {
-                    newDataArray.add(dataInMemory);
+                if (!dataInMemory.getKey().equals(data.getKey())) {
+                    if(helper.calculateMD5(dataInMemory.getKey()).compareTo(ourMD5) > 0 && !insertedOrNot){
+                        insertedOrNot = true;
+                        newDataArray.add(data);
+                        newDataArray.add(dataInMemory);
+                    }
+                    else {
+                        newDataArray.add(dataInMemory);
+                    }
                 }
             }
-            newDataArray.add(data);
+
             String jsonToWriteFile = gson.toJson(newDataArray);
             writeToFile(jsonToWriteFile);
         } catch (Exception e) {
@@ -125,41 +133,30 @@ public class ClientConnection extends Thread{
      * @param key, value
      * @return
      */
-    public synchronized String putData(String key, String value) throws NullPointerException, IOException {
+    public synchronized String putData(String key, String value) throws NullPointerException {
         try{
+            Data newData = new Data(key, value, String.valueOf(System.currentTimeMillis()), 1);
             for(int eachIndex = 0; eachIndex < macroDefinitions.getCacheSize(); eachIndex++){
                 if(cache[eachIndex] == null){
-                    Data addData = new Data();
-                    addData.setKey(key);
-                    addData.setValue(value);
-                    addData.setTimestamp(String.valueOf(System.currentTimeMillis()));
-                    addData.setFrequency(1);
-                    cache[eachIndex] = addData;
-                    updateMemory(addData);
+                    cache[eachIndex] = newData;
+                    updateMemory(newData);
                     return ("put_success " + key);
                 }
                 else if (cache[eachIndex] != null && cache[eachIndex].getKey().equals(key)) {
                     if (macroDefinitions.getCachePolicy().equals("LRU")) {
-                        int currentFrequency = cache[eachIndex].getFrequency() + 1;
+                        newData.setFrequency(cache[eachIndex].getFrequency() + 1);
                         slideCache(eachIndex);
                         for(int eachElementInCache = 0; eachElementInCache < macroDefinitions.getCacheSize(); eachElementInCache++){
                             if(cache[eachElementInCache] == null){
-                                cache[eachElementInCache] = new Data();
-                                cache[eachElementInCache].setKey(key);
-                                cache[eachElementInCache].setValue(value);
-                                cache[eachElementInCache].setTimestamp(String.valueOf(System.currentTimeMillis()));
-                                cache[eachElementInCache].setFrequency(currentFrequency);
+                                cache[eachElementInCache] = newData;
                                 updateMemory(cache[eachElementInCache]);
-                                logMethod("putData - " + key + " " + value);
                                 return ("put_update " + key);
                             }
                         }
                     }
                     else {
-                        cache[eachIndex].setKey(key);
-                        cache[eachIndex].setValue(value);
-                        cache[eachIndex].setTimestamp(String.valueOf(System.currentTimeMillis()));
-                        cache[eachIndex].setFrequency(cache[eachIndex].getFrequency() + 1);
+                        newData.setFrequency(cache[eachIndex].getFrequency() + 1);
+                        cache[eachIndex] = newData;
                         updateMemory(cache[eachIndex]);
                         return ("put_update " + key);
                     }
@@ -180,49 +177,38 @@ public class ClientConnection extends Thread{
                 // Find data for delete from cache and put into memory
                 if((macroDefinitions.getCachePolicy().equals("FIFO")) || (macroDefinitions.getCachePolicy().equals("LRU"))){
                     slideCache(0);
-                    cache[macroDefinitions.getCacheSize() - 1] = new Data();
-                    cache[macroDefinitions.getCacheSize() - 1].setKey(key);
-                    cache[macroDefinitions.getCacheSize() - 1].setValue(value);
-                    cache[macroDefinitions.getCacheSize() - 1].setTimestamp(String.valueOf(System.currentTimeMillis()));
                     if(requestedData == null){
-                        cache[macroDefinitions.getCacheSize() - 1].setFrequency(1);
+                        newData.setFrequency(1);
                         updateMemory(cache[macroDefinitions.getCacheSize() - 1]);
                         return ("put_success " + key);
                     }
                     else{
-                        cache[macroDefinitions.getCacheSize() - 1].setFrequency(requestedData.getFrequency() + 1);
+                        newData.setFrequency(requestedData.getFrequency() + 1);
                         updateMemory(cache[macroDefinitions.getCacheSize() - 1]);
                         return ("put_update " + key);
                     }
                 }
                 else if (macroDefinitions.getCachePolicy().equals("LFU")) {
                     int minCount = Integer.MAX_VALUE;
-                    int index = 0;
+                    int slideFromIndex = 0;
                     for (int i = 0; i < macroDefinitions.getCacheSize(); i++) {
                         if (cache[i].getFrequency() < minCount) {
                             minCount = cache[i].getFrequency();
-                            index = i;
+                            slideFromIndex = i;
                         }
                     }
-                    slideCache(index);
-                    cache[macroDefinitions.getCacheSize() - 1] = new Data();
-                    cache[macroDefinitions.getCacheSize() - 1].setKey(key);
-                    cache[macroDefinitions.getCacheSize() - 1].setValue(value);
-                    cache[macroDefinitions.getCacheSize() - 1].setTimestamp(String.valueOf(System.currentTimeMillis()));
+                    slideCache(slideFromIndex);
                     if(requestedData == null){
-                        cache[macroDefinitions.getCacheSize() - 1].setFrequency(1);
+                        newData.setFrequency(1);
                         updateMemory(cache[macroDefinitions.getCacheSize() - 1]);
                         return ("put_success " + key);
                     }
                     else{
-                        cache[macroDefinitions.getCacheSize() - 1].setFrequency(requestedData.getFrequency() + 1);
+                        newData.setFrequency(requestedData.getFrequency() + 1);
                         updateMemory(cache[macroDefinitions.getCacheSize() - 1]);
                         return ("put_update " + key);
                     }
                 }
-            }
-            catch (IOException e) {
-                return "put_error";
             }
         } catch (Exception exception){
             return "put_error";
@@ -406,24 +392,7 @@ public class ClientConnection extends Thread{
     }
 
     // Methods for Distributed Storage ----------------------------------------------------------------
-    /**
-     * Calculate the MD5 value of given string.
-     *
-     * @param inputToMD5
-     * @return
-     */
-    public synchronized String calcualteMD5(String inputToMD5) throws NoSuchAlgorithmException {
-        MessageDigest md = MessageDigest.getInstance("MD5");
-        byte[] inputBytes = inputToMD5.getBytes();
-        md.update(inputBytes);
-        byte[] digest = md.digest();
-        StringBuilder sb = new StringBuilder();
-        for (byte b : digest) {
-            sb.append(String.format("%02x", b));
-        }
-        String md5Hash = sb.toString();
-        return md5Hash;
-    }
+
 
     /**
      * Update internal memory-cache with respect to metadata
