@@ -18,8 +18,6 @@ public class ServerCommunication {
     int port;
     InputStream inputStream;
     OutputStream outputStream;
-    int MESSAGE_SIZE = 1024;
-    String logLevel;
     boolean connected = false;
 
     // Metadata
@@ -28,7 +26,6 @@ public class ServerCommunication {
     public void setOutputStream(OutputStream outputStream) {
         this.outputStream = outputStream;
     }
-
 
     /**
      * Checks if entered log level is valid
@@ -129,7 +126,6 @@ public class ServerCommunication {
             String responseOfSend = new String(byteArray, StandardCharsets.UTF_8);
             System.out.println(responseOfSend);
         }
-
         catch(Exception exception) {
             System.out.println("" +exception.getMessage());
             System.out.print("Error! Not connected! \n");
