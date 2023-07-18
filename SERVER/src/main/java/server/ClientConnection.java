@@ -387,48 +387,6 @@ public class ClientConnection extends Thread{
     }
 
     /**
-     * Check data is in pur range or not.
-     *
-     * @param inputDataString
-     * @return
-     */
-    public synchronized boolean dataInRangeOrNotChecker(String inputDataString) {
-        String dataMD5Value = helper.extractValue(inputDataString);
-
-        // Only one server in cluster.
-        if(metadata.size() == 1){
-            return true;
-        }
-
-        for (Map.Entry<List<String>, List<String>> entry : metadata.entrySet()) {
-            List<String> key = entry.getKey();
-            List<String> value = entry.getValue();
-
-            if(key.get(0).equals(macroDefinitions.getListenAddress()) && key.get(1).equals(String.valueOf(macroDefinitions.getServerPort()))){
-                if(value.get(0).compareTo(value.get(1)) <= 0){
-                    if(value.get(0).compareTo(dataMD5Value) <= 0 && value.get(1).compareTo(dataMD5Value) > 0){
-                        return true;
-                    }
-                    else{
-                        return false;
-                    }
-                }
-                else{
-                    String maxHash = "ffffffffffffffffffffffffffffffffffffffff";
-                    String minHash = "0000000000000000000000000000000000000000";
-                    if((dataMD5Value.compareTo(maxHash) <= 0 && dataMD5Value.compareTo(value.get(0)) > 0) ||
-                            (dataMD5Value.compareTo(value.get(1)) <= 0 && dataMD5Value.compareTo(minHash) > 0)){
-                        return true;
-                    } else{
-                        return false;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
      * Sae coming data from exiting server
      *
      * @param
@@ -524,10 +482,7 @@ public class ClientConnection extends Thread{
         try (Reader reader = new FileReader(macroDefinitions.getMemoryFilePath())) {
             Data[] jsonArray = gson.fromJson(reader, Data[].class);
             for (Data dataInMemory : jsonArray) {
-                if (dataInRangeOrNotChecker(dataInMemory.getKey())) {
-                    continue;
-                }
-                else {
+                if (!helper.dataInRangeOrNotChecker(dataInMemory.getKey(), metadata, macroDefinitions.getListenAddress(), macroDefinitions.getServerPort())) {
                     nonBelongsToThisServer.add(dataInMemory);
                 }
             }
@@ -717,7 +672,7 @@ public class ClientConnection extends Thread{
         try (Reader reader = new FileReader(macroDefinitions.getMemoryFilePath())) {
             Data[] jsonArray = gson.fromJson(reader, Data[].class);
             for (Data dataInMemory : jsonArray) {
-                if (!dataInRangeOrNotChecker(dataInMemory.getKey())) {
+                if (!helper.dataInRangeOrNotChecker(dataInMemory.getKey(), metadata, macroDefinitions.getListenAddress(), macroDefinitions.getServerPort())) {
                     deleteData(dataInMemory.getKey());
                 }
             }
@@ -746,7 +701,7 @@ public class ClientConnection extends Thread{
                     String keywordCommand = getMessage.split(" ")[0];
                     switch (keywordCommand){
                         case "put":
-                            if(dataInRangeOrNotChecker(getMessage.split(" ")[1])){
+                            if(helper.dataInRangeOrNotChecker(getMessage.split(" ")[1], metadata, macroDefinitions.getListenAddress(), macroDefinitions.getServerPort())){
                                 String valueFromRequest = helper.extractValue(getMessage);
                                 if(valueFromRequest.equals("null")){
                                     updateReplicas(getMessage.split(" ")[1], null, "delete");
@@ -781,7 +736,7 @@ public class ClientConnection extends Thread{
                             }
                             continue;
                         case "delete":
-                            if(dataInRangeOrNotChecker(getMessage.split(" ")[1])){
+                            if(helper.dataInRangeOrNotChecker(getMessage.split(" ")[1], metadata, macroDefinitions.getListenAddress(), macroDefinitions.getServerPort())){
                                 updateReplicas(getMessage.split(" ")[1], null, "delete");
                                 messageSendGet.sendMessage(outputStream, deleteData(getMessage.split(" ")[1]));
                             }

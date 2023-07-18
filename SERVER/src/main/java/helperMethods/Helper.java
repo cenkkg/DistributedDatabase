@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class Helper {
     public String extractValue(String fullText){
@@ -93,5 +94,45 @@ public class Helper {
             writer.write(jsonToWriteFile);
             writer.flush();
         } catch (IOException e) {}
+    }
+
+    /**
+     * Check data is in pur range or not.
+     *
+     * @param inputDataString
+     * @return
+     */
+    public synchronized boolean dataInRangeOrNotChecker(String inputDataString, Map<List<String>, List<String>> metadata, String listenAddress, int listenPort) {
+        String dataMD5Value = extractValue(inputDataString);
+
+        // Only one server in cluster.
+        if(metadata.size() == 1){ return true; }
+
+        for (Map.Entry<List<String>, List<String>> entry : metadata.entrySet()) {
+            List<String> key = entry.getKey();
+            List<String> value = entry.getValue();
+
+            if(key.get(0).equals(listenAddress) && key.get(1).equals(String.valueOf(listenPort))){
+                if(value.get(0).compareTo(value.get(1)) <= 0){
+                    if(value.get(0).compareTo(dataMD5Value) <= 0 && value.get(1).compareTo(dataMD5Value) > 0){
+                        return true;
+                    }
+                    else{
+                        return false;
+                    }
+                }
+                else{
+                    String maxHash = "ffffffffffffffffffffffffffffffffffffffff";
+                    String minHash = "0000000000000000000000000000000000000000";
+                    if((dataMD5Value.compareTo(maxHash) <= 0 && dataMD5Value.compareTo(value.get(0)) > 0) ||
+                            (dataMD5Value.compareTo(value.get(1)) <= 0 && dataMD5Value.compareTo(minHash) > 0)){
+                        return true;
+                    } else{
+                        return false;
+                    }
+                }
+            }
+        }
+        return false;
     }
 }
