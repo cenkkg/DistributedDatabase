@@ -1,5 +1,7 @@
 package helperMethods;
 
+import server.Data;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -40,6 +42,29 @@ public class Helper {
             return md5Hash;
         } catch (Exception e){
             return null;
+        }
+    }
+
+    public Data findDataInMemoryBinarySearch(Data[] dataArr, String key){
+        int lastElement = dataArr.length - 1;
+        int initialElement = 0;
+        int middleElement = (lastElement + initialElement) / 2;
+        while(true){
+            if(lastElement == 0){
+                return null;
+            } else if (lastElement == initialElement && dataArr[lastElement].getKey().equals(key)) {
+                return dataArr[lastElement];
+            } else if (lastElement == initialElement && !dataArr[lastElement].getKey().equals(key)) {
+                return null;
+            } else if(dataArr[middleElement].getValue().equals(key)){
+                return dataArr[middleElement];
+            } else if (calculateMD5(dataArr[middleElement].getKey()).compareTo(calculateMD5(key)) > 0) {
+                lastElement = middleElement;
+                middleElement = (lastElement + initialElement) / 2;
+            } else if (calculateMD5(dataArr[middleElement].getKey()).compareTo(calculateMD5(key)) <= 0) {
+                initialElement = middleElement;
+                middleElement = (lastElement + initialElement) / 2;
+            }
         }
     }
 }

@@ -212,13 +212,6 @@ public class ClientConnection extends Thread{
         return "put_error";
     }
 
-
-    // -----------------------------------------------------------------------------------------------------------------------------------------------
-    // -----------------------------------------------------------------------------------------------------------------------------------------------
-    // -----------------------------------------------------------------------------------------------------------------------------------------------
-    // -----------------------------------------------------------------------------------------------------------------------------------------------
-
-
     /**
      * Get data from cache or memory. If data is not in cache it also select one to send memory.
      *
@@ -258,12 +251,7 @@ public class ClientConnection extends Thread{
             try (Reader reader = new FileReader(macroDefinitions.getMemoryFilePath())) {
                 Data[] jsonArray = gson.fromJson(reader, Data[].class);
                 Data requestedData = null;
-                for (Data data : jsonArray) {
-                    if(data.getKey().equals(key)){
-                        requestedData = data;
-                    }
-                }
-
+                requestedData = helper.findDataInMemoryBinarySearch(jsonArray, key);
                 if(!(requestedData == null)) {
                     // Find data for delete from cache and put into memory
                     if (macroDefinitions.getCachePolicy().equals("FIFO") || macroDefinitions.getCachePolicy().equals("LRU")) {
@@ -292,6 +280,12 @@ public class ClientConnection extends Thread{
         }
         return ("get_error " + key);
     }
+
+    // -----------------------------------------------------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------------------------------------------------------------
+
 
     /**
      * Delete data from cache or memory.
