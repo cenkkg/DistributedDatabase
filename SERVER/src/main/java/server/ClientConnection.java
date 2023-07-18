@@ -66,11 +66,7 @@ public class ClientConnection extends Thread{
             if(cache[index + 1] == null){
                 cache[index] = null;
             }else{
-                cache[index] = new Data();
-                cache[index].setKey(cache[index + 1].getKey());
-                cache[index].setValue(cache[index + 1].getValue());
-                cache[index].setTimestamp(cache[index + 1].getTimestamp());
-                cache[index].setFrequency(cache[index + 1].getFrequency());
+                cache[index] = new Data(cache[index + 1].getKey(), cache[index + 1].getValue(), cache[index + 1].getTimestamp(), cache[index + 1].getFrequency());
             }
         }
         cache[macroDefinitions.getCacheSize() - 1] = null;
@@ -216,13 +212,20 @@ public class ClientConnection extends Thread{
         return "put_error";
     }
 
+
+    // -----------------------------------------------------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------------------------------------------------------------
+
+
     /**
      * Get data from cache or memory. If data is not in cache it also select one to send memory.
      *
      * @param key
      * @return
      */
-    public synchronized String getData(String key) throws IOException {
+    public synchronized String getData(String key) {
         try{
             for(int eachIndex = 0; eachIndex < macroDefinitions.getCacheSize(); eachIndex++){
                 if(cache[eachIndex] == null){
@@ -231,26 +234,19 @@ public class ClientConnection extends Thread{
                 else if(cache[eachIndex] != null && cache[eachIndex].getKey().equals(key)){
                     if(macroDefinitions.getCachePolicy().equals("LRU")){
                         String currentValue = cache[eachIndex].getValue();
-                        String currentTimestamp = String.valueOf(System.currentTimeMillis());
                         int currentFrequency = cache[eachIndex].getFrequency() + 1;
                         slideCache(eachIndex);
                         for(int eachElementInCache = 0; eachElementInCache < macroDefinitions.getCacheSize(); eachElementInCache++){
                             if(cache[eachElementInCache] == null){
-                                cache[eachElementInCache] = new Data();
-                                cache[eachElementInCache].setKey(key);
-                                cache[eachElementInCache].setValue(currentValue);
-                                cache[eachElementInCache].setTimestamp(currentTimestamp);
-                                cache[eachElementInCache].setFrequency(currentFrequency);
+                                cache[eachElementInCache] = new Data(key, currentValue, String.valueOf(System.currentTimeMillis()), currentFrequency);
                                 updateMemory(cache[eachElementInCache]);
                                 return ("get_success " + key + " " + cache[eachElementInCache].getValue());
                             }
                         }
                     }
                     else {
-                        cache[eachIndex].setKey(key);
-                        cache[eachIndex].setValue(cache[eachIndex].getValue());
-                        cache[eachIndex].setTimestamp(String.valueOf(System.currentTimeMillis()));
-                        cache[eachIndex].setFrequency(cache[eachIndex].getFrequency() + 1);
+                        Data newData = new Data(key, cache[eachIndex].getValue(), String.valueOf(System.currentTimeMillis()), cache[eachIndex].getFrequency() + 1);
+                        cache[eachIndex] = newData;
                         updateMemory(cache[eachIndex]);
                         return ("get_success " + key + " " + cache[eachIndex].getValue());
                     }
@@ -265,26 +261,17 @@ public class ClientConnection extends Thread{
                 for (Data data : jsonArray) {
                     if(data.getKey().equals(key)){
                         requestedData = data;
-                    } else{
-                        continue;
                     }
                 }
-                if(requestedData == null){
-                    return ("get_error " + key);
-                }
-                else{
+
+                if(!(requestedData == null)) {
                     // Find data for delete from cache and put into memory
-                    if(macroDefinitions.getCachePolicy().equals("FIFO") || macroDefinitions.getCachePolicy().equals("LRU")){
+                    if (macroDefinitions.getCachePolicy().equals("FIFO") || macroDefinitions.getCachePolicy().equals("LRU")) {
                         slideCache(0);
-                        cache[macroDefinitions.getCacheSize() - 1] = new Data();
-                        cache[macroDefinitions.getCacheSize() - 1].setKey(requestedData.getKey());
-                        cache[macroDefinitions.getCacheSize() - 1].setValue(requestedData.getValue());
-                        cache[macroDefinitions.getCacheSize() - 1].setTimestamp(String.valueOf(System.currentTimeMillis()));
-                        cache[macroDefinitions.getCacheSize() - 1].setFrequency(requestedData.getFrequency() + 1);
+                        cache[macroDefinitions.getCacheSize() - 1] = new Data(requestedData.getKey(), requestedData.getValue(), String.valueOf(System.currentTimeMillis()), requestedData.getFrequency() + 1);
                         updateMemory(cache[macroDefinitions.getCacheSize() - 1]);
                         return ("get_success " + key + " " + requestedData.getValue());
-                    }
-                    else if (macroDefinitions.getCachePolicy().equals("LFU")) {
+                    } else if (macroDefinitions.getCachePolicy().equals("LFU")) {
                         int minCount = Integer.MAX_VALUE;
                         int index = 0;
                         for (int i = 0; i < cache.length; i++) {
@@ -294,17 +281,11 @@ public class ClientConnection extends Thread{
                             }
                         }
                         slideCache(index);
-                        cache[macroDefinitions.getCacheSize() - 1] = new Data();
-                        cache[macroDefinitions.getCacheSize() - 1].setKey(requestedData.getKey());
-                        cache[macroDefinitions.getCacheSize() - 1].setValue(requestedData.getValue());
-                        cache[macroDefinitions.getCacheSize() - 1].setTimestamp(String.valueOf(System.currentTimeMillis()));
-                        cache[macroDefinitions.getCacheSize() - 1].setFrequency(requestedData.getFrequency() + 1);
+                        cache[macroDefinitions.getCacheSize() - 1] = new Data(requestedData.getKey(), requestedData.getValue(), String.valueOf(System.currentTimeMillis()), requestedData.getFrequency() + 1);
                         updateMemory(cache[macroDefinitions.getCacheSize() - 1]);
                         return ("get_success " + key + " " + requestedData.getValue());
                     }
                 }
-            } catch (IOException e) {
-                return ("get_error " + key);
             }
         } catch(Exception exception){
             return ("get_error " + key);
@@ -318,7 +299,7 @@ public class ClientConnection extends Thread{
      * @param key
      * @return
      */
-    public synchronized String deleteData(String key) throws IOException {
+    public synchronized String deleteData(String key) {
         try {
             for (int eachIndex = 0; eachIndex < macroDefinitions.getCacheSize(); eachIndex++) {
                 if (cache[eachIndex] == null) {
@@ -400,18 +381,18 @@ public class ClientConnection extends Thread{
      * @param
      * @return
      */
-    public synchronized void calculateNumberOfSentDataAndSendDelete(OutputStream outputStream, String targetIPandPORT) throws NoSuchAlgorithmException, IOException {
+    public synchronized void calculateNumberOfSentDataAndSendDelete(OutputStream outputStream, String targetIPandPORT) throws IOException {
 
         List<Data> messagesToSend = new ArrayList<>();
-        String ourOwnMD5 = calcualteMD5(macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort());
-        String targetMD5 = calcualteMD5(targetIPandPORT);
+        String ourOwnMD5 = helper.calculateMD5(macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort());
+        String targetMD5 = helper.calculateMD5(targetIPandPORT);
         // READING DATA FROM MEMORY
         Gson gson = new Gson();
         try (Reader reader = new FileReader(macroDefinitions.getMemoryFilePath())) {
             Data[] jsonArray = gson.fromJson(reader, Data[].class);
             for (Data data : jsonArray) {
                 // compare and save or not
-                String elementsMD5Value = calcualteMD5(data.getKey());
+                String elementsMD5Value = helper.calculateMD5(data.getKey());
                 if(ourOwnMD5.compareTo(targetMD5) > 0){
                     // We are front of target
                     if(!(elementsMD5Value.compareTo(targetMD5) > 0 && elementsMD5Value.compareTo(ourOwnMD5) <= 0)){
@@ -443,8 +424,8 @@ public class ClientConnection extends Thread{
      * @param inputDataString
      * @return
      */
-    public synchronized boolean dataInRangeOrNotChecker(String inputDataString) throws NoSuchAlgorithmException {
-        String dataMD5Value = calcualteMD5(inputDataString);
+    public synchronized boolean dataInRangeOrNotChecker(String inputDataString) {
+        String dataMD5Value = helper.extractValue(inputDataString);
 
         // Only one server in cluster.
         if(metadata.size() == 1){
@@ -763,7 +744,7 @@ public class ClientConnection extends Thread{
      * @param
      * @return
      */
-    public synchronized void deleteAllReplicas() throws NoSuchAlgorithmException {
+    public synchronized void deleteAllReplicas() {
         Gson gson = new Gson();
         try (Reader reader = new FileReader(macroDefinitions.getMemoryFilePath())) {
             Data[] jsonArray = gson.fromJson(reader, Data[].class);
