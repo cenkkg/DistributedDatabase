@@ -3,7 +3,8 @@ package helperMethods;
 import server.Data;
 
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.List;
 
 public class Helper {
     public String extractValue(String fullText){
@@ -66,5 +67,15 @@ public class Helper {
                 middleElement = (lastElement + initialElement) / 2;
             }
         }
+    }
+
+    public List<Data> deleteFromMemoryAndCreateNewMemory(Data[] dataArr, String key){
+        List<Data> newList = Arrays.asList(dataArr);
+        for (Data data : dataArr) {
+            if (!data.getKey().equals(key)) {
+                newList.add(data);
+            }
+        }
+        return newList;
     }
 }

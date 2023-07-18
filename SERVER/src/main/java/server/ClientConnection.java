@@ -281,12 +281,6 @@ public class ClientConnection extends Thread{
         return ("get_error " + key);
     }
 
-    // -----------------------------------------------------------------------------------------------------------------------------------------------
-    // -----------------------------------------------------------------------------------------------------------------------------------------------
-    // -----------------------------------------------------------------------------------------------------------------------------------------------
-    // -----------------------------------------------------------------------------------------------------------------------------------------------
-
-
     /**
      * Delete data from cache or memory.
      *
@@ -311,9 +305,7 @@ public class ClientConnection extends Thread{
                         Data[] jsonArray = gson.fromJson(reader, Data[].class);
                         List<Data> newDataArray = new ArrayList<>();
                         for (Data data : jsonArray) {
-                            if(data.getKey().equals(key)){
-                                continue;
-                            } else{
+                            if(!data.getKey().equals(key)){
                                 newDataArray.add(data);
                             }
                         }
@@ -341,15 +333,9 @@ public class ClientConnection extends Thread{
             Gson gson = new Gson();
             try (Reader reader = new FileReader(macroDefinitions.getMemoryFilePath())) {
                 Data[] jsonArray = gson.fromJson(reader, Data[].class);
-                Data requestedData = null;
-                List<Data> newDataArray = new ArrayList<>();
-                for (Data data : jsonArray) {
-                    if (data.getKey().equals(key)) {
-                        requestedData = data;
-                    } else {
-                        newDataArray.add(data);
-                    }
-                }
+                Data requestedData = helper.findDataInMemoryBinarySearch(jsonArray, key);
+                List<Data> newDataArray = helper.deleteFromMemoryAndCreateNewMemory(jsonArray, key);
+
                 if (requestedData == null) {
                     return ("delete_error " + key);
                 } else {
@@ -358,13 +344,16 @@ public class ClientConnection extends Thread{
                     return ("delete_success " + key + " " + requestedData.getValue());
                 }
             }
-            catch (Exception exception) {
-                return "delete_error " + key;
-            }
         } catch (Exception e) {
             return "delete_error " + key;
         }
     }
+
+    // -----------------------------------------------------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------------------------------------------------------------
+
 
     // Methods for Distributed Storage ----------------------------------------------------------------
 
