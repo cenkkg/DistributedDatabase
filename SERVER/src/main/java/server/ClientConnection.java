@@ -72,20 +72,6 @@ public class ClientConnection extends Thread{
         cache[macroDefinitions.getCacheSize() - 1] = null;
     }
 
-    /**
-     * Write string to memory file
-     *
-     * @param jsonToWriteFile
-     * @return
-     */
-    public synchronized void writeToFile(String jsonToWriteFile) throws Exception {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(macroDefinitions.getMemoryFilePath()))) {
-            writer.write(jsonToWriteFile);
-            writer.flush();
-        } catch (IOException e) {
-            throw new Exception(e.getMessage());
-        }
-    }
 
     /**
      * Update memory Add & Delete data from memory
@@ -116,7 +102,7 @@ public class ClientConnection extends Thread{
             }
 
             String jsonToWriteFile = gson.toJson(newDataArray);
-            writeToFile(jsonToWriteFile);
+            helper.writeToFile(jsonToWriteFile, macroDefinitions.getMemoryFilePath());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -311,7 +297,7 @@ public class ClientConnection extends Thread{
                         }
                         if(newDataArray.size() == 0){
                             String jsonToWriteFile = "[]";
-                            writeToFile(jsonToWriteFile);
+                            helper.writeToFile(jsonToWriteFile, macroDefinitions.getMemoryFilePath());
                             return ("delete_success " + key + " " + deletedValue);
                         }
                         else{
@@ -322,7 +308,7 @@ public class ClientConnection extends Thread{
                                 }
                             }
                             String jsonToWriteFile = gson.toJson(newDataArray);
-                            writeToFile(jsonToWriteFile);
+                            helper.writeToFile(jsonToWriteFile, macroDefinitions.getMemoryFilePath());
                             return ("delete_success " + key + " " + deletedValue);
                         }
                     }
@@ -340,7 +326,7 @@ public class ClientConnection extends Thread{
                     return ("delete_error " + key);
                 } else {
                     String jsonToWriteFile = gson.toJson(newDataArray);
-                    writeToFile(jsonToWriteFile);
+                    helper.writeToFile(jsonToWriteFile, macroDefinitions.getMemoryFilePath());
                     return ("delete_success " + key + " " + requestedData.getValue());
                 }
             }
@@ -356,7 +342,6 @@ public class ClientConnection extends Thread{
 
 
     // Methods for Distributed Storage ----------------------------------------------------------------
-
 
     /**
      * Update internal memory-cache with respect to metadata

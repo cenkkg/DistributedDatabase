@@ -2,6 +2,9 @@ package helperMethods;
 
 import server.Data;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.List;
@@ -77,5 +80,18 @@ public class Helper {
             }
         }
         return newList;
+    }
+
+    /**
+     * Write string to memory file
+     *
+     * @param jsonToWriteFile
+     * @return
+     */
+    public synchronized void writeToFile(String jsonToWriteFile, String filePath) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            writer.write(jsonToWriteFile);
+            writer.flush();
+        } catch (IOException e) {}
     }
 }
