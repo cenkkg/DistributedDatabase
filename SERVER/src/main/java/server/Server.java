@@ -150,12 +150,7 @@ public class Server {
 
                                 String timestamp = String.valueOf(System.currentTimeMillis());
 
-                                Data saveNewData = new Data();
-                                saveNewData.setKey(key);
-                                saveNewData.setValue(value);
-                                saveNewData.setTimestamp(timestamp);
-                                saveNewData.setFrequency(frequency);
-
+                                Data saveNewData = new Data(key, value, timestamp, frequency);
                                 newDataFromTargetArray.add(saveNewData);
                                 newDataArray.add(saveNewData);
                             }

@@ -1,0 +1,7 @@
+macros/MacroDefinitions.class
+database/DBConnector.class
+server/Server.class
+helperMethods/Helper.class
+server/ClientConnection.class
+server/MessageSendGet.class
+server/Data.class
