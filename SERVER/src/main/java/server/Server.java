@@ -13,10 +13,7 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -43,9 +40,7 @@ public class Server {
 
             // Create CACHE
             Data[] cache = new Data[macroDefinitions.getCacheSize()];
-            for(int i = 0; i < macroDefinitions.getCacheSize(); i++){
-                cache[i] = null;
-            }
+            Arrays.fill(cache, null);
 
             for (int i = 0; i < args.length; i += 2) {
                 String flag = args[i];
@@ -184,11 +179,7 @@ public class Server {
 
                                 String timestamp = String.valueOf(System.currentTimeMillis());
 
-                                Data saveNewData = new Data();
-                                saveNewData.setKey(key);
-                                saveNewData.setValue(value);
-                                saveNewData.setTimestamp(timestamp);
-                                saveNewData.setFrequency(frequency);
+                                Data saveNewData = new Data(key, value, timestamp, frequency);
 
                                 newDataFromTargetArray.add(saveNewData);
                                 newDataArray.add(saveNewData);
@@ -252,7 +243,7 @@ public class Server {
                 // open server socket temp
                 ServerSocket serverSocket = new ServerSocket(macroDefinitions.getServerPort());
                 Socket clientSocket = serverSocket.accept();
-                String metadataPreMessageFromECS = messageSendGet.getMessage(clientSocket.getInputStream()); // "ECSSENDMETADATA"
+                messageSendGet.getMessage(clientSocket.getInputStream()); // "ECSSENDMETADATA"
                 ObjectInputStream objectInputStream = new ObjectInputStream(clientSocket.getInputStream());
                 metadata = (Map<List<String>, List<String>>) objectInputStream.readObject(); // "-" -> 0000000..00/FFFFF....FFF
                 serverSocket.close();
@@ -277,10 +268,6 @@ public class Server {
                              OutputStream outputStreamForTargetServer = socketForTargetServer.getOutputStream();
                              InputStream inputStreamForTargetServer = socketForTargetServer.getInputStream()) {
 
-                            messageSendGet.sendMessage(outputStreamForTargetServer, "WAITWRITE");
-                            String waitResponse = messageSendGet.getMessage(inputStreamForTargetServer);
-                            if (waitResponse.equals("OK")) {} else {throw new Exception("ERROR CASE.");}
-
                             // SEND TARGET a message to take our all data ================================
                             List<Data> newDataArray = new ArrayList<>();
                             Gson gson = new Gson();
@@ -295,10 +282,6 @@ public class Server {
                             for(int eachDataForSend = 0; eachDataForSend < newDataArray.size(); eachDataForSend++){
                                 messageSendGet.sendMessage(outputStreamForTargetServer, newDataArray.get(eachDataForSend).getKey() + " " + newDataArray.get(eachDataForSend).getValue());
                             }
-
-                            messageSendGet.sendMessage(outputStreamForTargetServer, "WAITWRITEEXIT");
-                            String waitResponse2 = messageSendGet.getMessage(inputStreamForTargetServer);
-                            if (waitResponse2.equals("OK")) {} else {throw new Exception("ERROR CASE.");}
 
                             // SEND ECS TO SEND NEW METADATA TO ALL SERVERS ------------------------------------------------------------
                             messageSendGet.sendMessage(outputStreamForECS, "DATATRANSFERISDONE");

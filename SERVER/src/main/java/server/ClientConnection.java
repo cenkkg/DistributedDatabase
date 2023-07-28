@@ -385,9 +385,8 @@ public class ClientConnection extends Thread{
         for(int eachDataToSend = 0; eachDataToSend < messagesToSend.size(); eachDataToSend++){
             messageSendGet.sendMessage(outputStream, messagesToSend.get(eachDataToSend).getKey() + " " + messagesToSend.get(eachDataToSend).getValue() + " " + messagesToSend.get(eachDataToSend).getFrequency());
         }
-        System.out.println("here");
         for(int eachDataToSend = 0; eachDataToSend < messagesToSend.size(); eachDataToSend++){
-            //deleteData(messagesToSend.get(eachDataToSend).getKey());
+            deleteData(messagesToSend.get(eachDataToSend).getKey());
         }
     }
 
