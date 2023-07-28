@@ -262,11 +262,9 @@ public class Server {
                     MessageSendGet messageSendGet = new MessageSendGet();
                     messageSendGet.sendMessage(outputStreamForECS, "EXIT " + macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort());
                     String targetServerIpAndPort = messageSendGet.getMessage(inputStreamForECS);
-
                     if(!targetServerIpAndPort.equals("-")){
                         try (Socket socketForTargetServer = new Socket(targetServerIpAndPort.split(":")[0], Integer.parseInt(targetServerIpAndPort.split(":")[1]));
-                             OutputStream outputStreamForTargetServer = socketForTargetServer.getOutputStream();
-                             InputStream inputStreamForTargetServer = socketForTargetServer.getInputStream()) {
+                             OutputStream outputStreamForTargetServer = socketForTargetServer.getOutputStream()) {
 
                             // SEND TARGET a message to take our all data ================================
                             List<Data> newDataArray = new ArrayList<>();
