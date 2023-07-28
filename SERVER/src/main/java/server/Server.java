@@ -14,7 +14,6 @@ import java.io.Reader;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +43,9 @@ public class Server {
 
             // Create CACHE
             Data[] cache = new Data[macroDefinitions.getCacheSize()];
-            Arrays.fill(cache, null);
+            for(int i = 0; i < macroDefinitions.getCacheSize(); i++){
+                cache[i] = null;
+            }
 
             for (int i = 0; i < args.length; i += 2) {
                 String flag = args[i];
@@ -53,12 +54,56 @@ public class Server {
                     case "-p":
                         macroDefinitions.setServerPort(Integer.parseInt(value));
                         continue;
+                    case "-d":
+                        // Create Directory
+                        File directory = new File(value);
+                        if (directory.mkdir()) {
+                            // First time running server.
+                            // Create File - Primary Memory
+                            File filePrimary = new File(value + "/data.json");
+                            filePrimary.createNewFile();
+
+                            // Write a empty array to file
+                            try (BufferedWriter writer = new BufferedWriter(new FileWriter(value + "/data.json"))) {
+                                String jsonArray = "[]";
+                                writer.write(jsonArray);
+                                writer.flush();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            macroDefinitions.setMemoryFilePath(value + "/data.json");
+                        }
+                        else {
+                            // Not First time running server.
+                            macroDefinitions.setMemoryFilePath(value + "/data.json");
+                            Gson gson = new Gson();
+                            try (Reader reader = new FileReader(macroDefinitions.getMemoryFilePath())) {
+                                Data[] jsonArray = gson.fromJson(reader, Data[].class);
+                                List<Data> newDataArray = new ArrayList<>();
+                                for (Data dataInMemory : jsonArray) {
+                                    newDataArray.add(dataInMemory);
+                                }
+                                if(macroDefinitions.getCacheSize() >= newDataArray.size()){
+                                    for(int eachDataInMemory = 0; eachDataInMemory < newDataArray.size(); eachDataInMemory++){
+                                        cache[eachDataInMemory] = newDataArray.get(eachDataInMemory);
+                                    }
+                                }else{
+                                    for(int eachDataInMemory = 0; eachDataInMemory < macroDefinitions.getCacheSize(); eachDataInMemory++){
+                                        cache[eachDataInMemory] = newDataArray.get(eachDataInMemory);
+                                    }
+                                }
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                        continue;
                     case "-c":
                         macroDefinitions.setCacheSize(Integer.parseInt(value));
                         continue;
                     case "-a":
                         macroDefinitions.setListenAddress(value);
                         continue;
+
                     case "-ll":
                         macroDefinitions.setLoglevel(Level.parse(value));
                         continue;
@@ -95,6 +140,7 @@ public class Server {
                 MessageSendGet messageSendGet = new MessageSendGet();
                 messageSendGet.sendMessage(outputStreamForECS, "JOIN " + macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort());
                 String responseTargetIPandPORT = messageSendGet.getMessage(inputStreamForECS);
+
                 if(!responseTargetIPandPORT.equals("-")){
                     try (Socket socketForTargetServer = new Socket(responseTargetIPandPORT.split(":")[0], Integer.parseInt(responseTargetIPandPORT.split(":")[1]));
                          OutputStream outputStreamForTargetServer = socketForTargetServer.getOutputStream();
@@ -138,7 +184,12 @@ public class Server {
 
                                 String timestamp = String.valueOf(System.currentTimeMillis());
 
-                                Data saveNewData = new Data(key, value, timestamp, frequency);
+                                Data saveNewData = new Data();
+                                saveNewData.setKey(key);
+                                saveNewData.setValue(value);
+                                saveNewData.setTimestamp(timestamp);
+                                saveNewData.setFrequency(frequency);
+
                                 newDataFromTargetArray.add(saveNewData);
                                 newDataArray.add(saveNewData);
                             }
@@ -147,7 +198,7 @@ public class Server {
                             try (BufferedWriter writer = new BufferedWriter(new FileWriter(macroDefinitions.getMemoryFilePath(), false))) {
                                 writer.write(jsonToWriteFile);
                                 writer.flush();
-                            }
+                            } catch (IOException e) { throw new Exception(e.getMessage()); }
 
 
                             // Save them to Cache --------------------------------------------------------------------------------
@@ -187,26 +238,31 @@ public class Server {
                                     firstEmptyIndex++;
                                 }
                             }
+                            else{// continue
+                            }
                         }
+                        catch (Exception e) {throw new RuntimeException(e);}
                     }
+                    catch (IOException e) { e.printStackTrace(); }
                 }
-                
+
                 // SEND ECS TO SEND NEW METADATA TO ALL SERVERS ------------------------------------------------------------
                 messageSendGet.sendMessage(outputStreamForECS, "DATATRANSFERISDONE");
 
                 // open server socket temp
                 ServerSocket serverSocket = new ServerSocket(macroDefinitions.getServerPort());
                 Socket clientSocket = serverSocket.accept();
-                messageSendGet.getMessage(clientSocket.getInputStream()); // "ECSSENDMETADATA"
+                String metadataPreMessageFromECS = messageSendGet.getMessage(clientSocket.getInputStream()); // "ECSSENDMETADATA"
                 ObjectInputStream objectInputStream = new ObjectInputStream(clientSocket.getInputStream());
                 metadata = (Map<List<String>, List<String>>) objectInputStream.readObject(); // "-" -> 0000000..00/FFFFF....FFF
                 serverSocket.close();
-            }
+            } catch (Exception e) {e.printStackTrace();}
             // ****************************************************************************************************
 
 
             // ****************************************************************************************************
             // MS3
+            // SHUTDOWN HOOK
             // Register a shutdown hook to perform actions when the JVM is shutting down
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 try (Socket socketForECS = new Socket(macroDefinitions.getBootstrapServerIP(), macroDefinitions.getBootstrapServerPort());
@@ -221,6 +277,10 @@ public class Server {
                              OutputStream outputStreamForTargetServer = socketForTargetServer.getOutputStream();
                              InputStream inputStreamForTargetServer = socketForTargetServer.getInputStream()) {
 
+                            messageSendGet.sendMessage(outputStreamForTargetServer, "WAITWRITE");
+                            String waitResponse = messageSendGet.getMessage(inputStreamForTargetServer);
+                            if (waitResponse.equals("OK")) {} else {throw new Exception("ERROR CASE.");}
+
                             // SEND TARGET a message to take our all data ================================
                             List<Data> newDataArray = new ArrayList<>();
                             Gson gson = new Gson();
@@ -229,18 +289,23 @@ public class Server {
                                 for (Data dataInMemory : jsonArray) {
                                     newDataArray.add(dataInMemory);
                                 }
-                            }
+                            } catch (Exception e) {throw new RuntimeException(e);}
 
                             messageSendGet.sendMessage(outputStreamForTargetServer, "SOMEISEXITING " + newDataArray.size());
                             for(int eachDataForSend = 0; eachDataForSend < newDataArray.size(); eachDataForSend++){
                                 messageSendGet.sendMessage(outputStreamForTargetServer, newDataArray.get(eachDataForSend).getKey() + " " + newDataArray.get(eachDataForSend).getValue());
                             }
+
+                            messageSendGet.sendMessage(outputStreamForTargetServer, "WAITWRITEEXIT");
+                            String waitResponse2 = messageSendGet.getMessage(inputStreamForTargetServer);
+                            if (waitResponse2.equals("OK")) {} else {throw new Exception("ERROR CASE.");}
+
                             // SEND ECS TO SEND NEW METADATA TO ALL SERVERS ------------------------------------------------------------
                             messageSendGet.sendMessage(outputStreamForECS, "DATATRANSFERISDONE");
                         }
                     }
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
+                } catch (Exception e){
+                    e.printStackTrace();
                 }
                 // Stop accepting new connections ------------------------------------------------
                 acceptConnection.set(false);
@@ -249,10 +314,11 @@ public class Server {
                     try {
                         thread.join();
                     } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
+                        e.printStackTrace();
                     }
                 }
             }));
+            // SHUTDOWN HOOK
             // ****************************************************************************************************
 
 
@@ -261,17 +327,19 @@ public class Server {
             ServerSocket serverSocket = new ServerSocket(macroDefinitions.getServerPort());
             while(acceptConnection.get()){
                 Socket clientSocket = serverSocket.accept();
-                ClientConnection clientConnection = null;
                 if(firstConnectionOrNot){
-                    clientConnection = new ClientConnection(clientSocket, cache, macroDefinitions, metadata);
+                    ClientConnection clientConnection = new ClientConnection(clientSocket, cache, macroDefinitions, metadata);
+                    clientConnection.start();
+                    threadList.add(clientConnection);
                     firstConnectionOrNot = false;
                 }
                 else{
-                    clientConnection = new ClientConnection(clientSocket, null, macroDefinitions, null);
+                    ClientConnection clientConnection = new ClientConnection(clientSocket, null, macroDefinitions, null);
+                    clientConnection.start();
+                    threadList.add(clientConnection);
                 }
-                clientConnection.start();
-                threadList.add(clientConnection);
             }
-        } catch (Exception exception) {}
+        } catch (Exception exception) { // logger.log(Level.WARNING, "Error, connection can not be established!");
+        }
     }
 }

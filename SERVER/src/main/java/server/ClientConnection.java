@@ -34,7 +34,11 @@ public class ClientConnection extends Thread{
     Helper helper = new Helper();
 
     // STATIC VARIABLES
+    @Getter
+    @Setter
     static  Data[] cache;
+    @Getter
+    @Setter
     static Map<List<String>, List<String>> metadata;
 
 
@@ -381,8 +385,9 @@ public class ClientConnection extends Thread{
         for(int eachDataToSend = 0; eachDataToSend < messagesToSend.size(); eachDataToSend++){
             messageSendGet.sendMessage(outputStream, messagesToSend.get(eachDataToSend).getKey() + " " + messagesToSend.get(eachDataToSend).getValue() + " " + messagesToSend.get(eachDataToSend).getFrequency());
         }
+        System.out.println("here");
         for(int eachDataToSend = 0; eachDataToSend < messagesToSend.size(); eachDataToSend++){
-            deleteData(messagesToSend.get(eachDataToSend).getKey());
+            //deleteData(messagesToSend.get(eachDataToSend).getKey());
         }
     }
 
