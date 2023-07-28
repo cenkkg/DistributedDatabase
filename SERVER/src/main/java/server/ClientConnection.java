@@ -34,7 +34,11 @@ public class ClientConnection extends Thread{
     Helper helper = new Helper();
 
     // STATIC VARIABLES
+    @Getter
+    @Setter
     static  Data[] cache;
+    @Getter
+    @Setter
     static Map<List<String>, List<String>> metadata;
 
 
