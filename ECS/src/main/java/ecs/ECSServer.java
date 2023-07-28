@@ -76,6 +76,9 @@ public class ECSServer {
                     case "-a":
                         macroDefinitions.setListenAddress(value);
                         continue;
+                    case "-c":
+                        macroDefinitions.setCoordiantorServer(value);
+                        continue;
                 }
             }
 
