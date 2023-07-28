@@ -82,6 +82,16 @@ public class ECSServer {
                 }
             }
 
+            if(macroDefinitions.getCoordiantorServer().equals(macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort())){
+                try (Socket socketForDestination = new Socket(macroDefinitions.getCoordiantorServer().split(":")[0], Integer.parseInt(macroDefinitions.getCoordiantorServer().split(":")[1]));
+                     OutputStream outputStreamForDestination = socketForDestination.getOutputStream();
+                     InputStream inputStreamForDestination = socketForDestination.getInputStream()) {
+                    messageSendGet.sendMessage(outputStreamForDestination, "GETMETADATA");
+                    ObjectInputStream objectInputStream = new ObjectInputStream(inputStreamForDestination);
+                    metadata = (Map<List<String>, List<String>>) objectInputStream.readObject();
+                }
+            }
+
 
             // Create ServerSocker and Socket. Get InputStream and OutputStream
             ServerSocket serverSocket = new ServerSocket(macroDefinitions.getServerPort());
