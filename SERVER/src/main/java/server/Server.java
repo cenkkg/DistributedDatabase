@@ -1,7 +1,6 @@
 package server;
 
 import com.google.gson.Gson;
-import database.DBConnector;
 import macros.MacroDefinitions;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -14,10 +13,6 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -108,13 +103,6 @@ public class Server {
                         messageSendGet.sendMessage(outputStreamForTargetServer, "GIVEMEMYDATA " + macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort());
                         String getDataCount = messageSendGet.getMessage(inputStreamForTargetServer);
                         List<String> dataGetFromTarget = new ArrayList<>();
-                        for(int eachResponse = 0; eachResponse < Integer.parseInt(getDataCount); eachResponse++) {
-                            dataGetFromTarget.add(messageSendGet.getMessage(inputStreamForTargetServer));
-                        }
-
-                        DBConnector dbConnector = new DBConnector();
-                        Statement statement     = dbConnector.getStatement(dbConnector.getDBConnection());
-                        ResultSet resultSet     = statement.executeQuery("Select * from " + responseTargetIPandPORT.split(":")[0] + "_" + responseTargetIPandPORT.split(":")[1]);
                         for(int eachResponse = 0; eachResponse < Integer.parseInt(getDataCount); eachResponse++) {
                             dataGetFromTarget.add(messageSendGet.getMessage(inputStreamForTargetServer));
                         }
