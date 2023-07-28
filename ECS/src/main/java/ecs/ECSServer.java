@@ -16,8 +16,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ECSServer {
-    // Get logger
-    private static final Logger logger = Logger.getLogger(ECSServer.class.getName());
     private static Map<List<String>, List<String>> metadata = new HashMap<>();
     private static MessageSendGet messageSendGet = new MessageSendGet();
 
@@ -78,6 +76,9 @@ public class ECSServer {
                     case "-a":
                         macroDefinitions.setListenAddress(value);
                         continue;
+                    case "-c":
+                        macroDefinitions.setCoordiantorServer(value);
+                        continue;
                 }
             }
 
@@ -102,8 +103,6 @@ public class ECSServer {
                     serverConnection.start();
                 }
             }
-        } catch (Exception exception) {
-            logger.log(Level.WARNING, "Error, connection can not be established!");
-        }
+        } catch (Exception exception) {}
     }
 }
