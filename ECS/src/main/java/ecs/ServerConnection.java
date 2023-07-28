@@ -277,21 +277,26 @@ public class ServerConnection extends Thread {
                         case "EXIT":
                             messageSendGet.sendMessage(outputStream, removeServerFromMetaData(getMessage.split(" ")[1]));
                             continue;
+                        case "GETMETADATA":
+                            ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
+                            objectOutputStream.writeObject(metadata);
+                            continue;
                         default:
                             messageSendGet.sendMessage(outputStream, "error unknown command!");
                     }
-                } catch (Exception exception){
+                }
+                catch (Exception exception){
                     isOpen = false;
                     break;
                 }
             }
-        } catch (Exception exception){
+        }
+        catch (Exception exception){
             try {
                 logMethod("Exception");
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            // logger.log(Level.WARNING, "Streams are not working!");
         }
         finally {
             try {
