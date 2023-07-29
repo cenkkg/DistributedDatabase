@@ -319,13 +319,13 @@ public class ServerConnection extends Thread {
                                 }
                             }
                             String newECSs = (String) objectInputStream.readObject();
-                            File fileForECSServers = new File("./" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + "_ecsServers" + ".txt");
+                            File fileForECSServers = new File(macroDefinitions.getEcsFilePath() + "/" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + "_ecsServers" + ".txt");
                             FileWriter fileWriterForECSServers = new FileWriter(fileForECSServers);
                             BufferedWriter bufferedWriterForECSServers = new BufferedWriter(fileWriterForECSServers);
                             bufferedWriterForECSServers.write(newECSs);
                             continue;
                         case "JOINECS":
-                            File fileForECSServersForNewJoinECS = new File("./" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + "_ecsServers" + ".txt");
+                            File fileForECSServersForNewJoinECS = new File(macroDefinitions.getEcsFilePath() + "/" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + "_ecsServers" + ".txt");
                             FileReader fileReaderForNewJoinECS = new FileReader(fileForECSServersForNewJoinECS);
                             BufferedReader bufferedReaderForNewJoinECS = new BufferedReader(fileReaderForNewJoinECS);
                             String lineForNewJoinECS;
@@ -335,7 +335,7 @@ public class ServerConnection extends Thread {
                             }
                             allECSServers += " " + getMessage.split(" ")[1];
 
-                            File fileForECSServersForNewJoinECS2 = new File("./" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + "_ecsServers" + ".txt");
+                            File fileForECSServersForNewJoinECS2 = new File(macroDefinitions.getEcsFilePath() + "/" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + "_ecsServers" + ".txt");
                             FileWriter fileWriterForNewJoinECS2 = new FileWriter(fileForECSServersForNewJoinECS2);
                             BufferedWriter bufferedWriterForNewJoinECS = new BufferedWriter(fileWriterForNewJoinECS2);
                             bufferedWriterForNewJoinECS.write(allECSServers);

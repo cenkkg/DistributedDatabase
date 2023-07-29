@@ -79,14 +79,20 @@ public class ECSServer {
                     case "-c":
                         macroDefinitions.setCoordiantorServer(value);
                         continue;
+                    case "-ecsFilePath":
+                        macroDefinitions.setEcsFilePath(value);
+                        continue;
                 }
             }
 
             // ****************************************************************************************************
             // START HOOK
-            try (Socket socketForCoordinatorServer = new Socket(macroDefinitions.getCoordiantorServer().split(":")[0], Integer.valueOf(macroDefinitions.getCoordiantorServer().split(":")[1]));
+            if(!(macroDefinitions.getCoordiantorServer().split(":")[0].equals(macroDefinitions.getListenAddress()) &&
+                    macroDefinitions.getCoordiantorServer().split(":")[1].equals(Integer.toString(macroDefinitions.getServerPort())))){
+                try (Socket socketForCoordinatorServer = new Socket(macroDefinitions.getCoordiantorServer().split(":")[0], Integer.valueOf(macroDefinitions.getCoordiantorServer().split(":")[1]));
                  OutputStream outputStreamForCoordinatorServer = socketForCoordinatorServer.getOutputStream()){
-                messageSendGet.sendMessage(outputStreamForCoordinatorServer, "JOINECS " + macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort());
+                    messageSendGet.sendMessage(outputStreamForCoordinatorServer, "JOINECS " + macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort());
+                }
             }
             // START HOOK
             // ****************************************************************************************************
@@ -96,7 +102,7 @@ public class ECSServer {
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 String targetECS = "";
                 try {
-                    File fileForECSServers1 = new File("./" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + "_ecsServers" + ".txt");
+                    File fileForECSServers1 = new File(macroDefinitions.getEcsFilePath() + "/" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + "_ecsServers" + ".txt");
                     FileReader fileReaderForECSServers1 = new FileReader(fileForECSServers1);
                     BufferedReader bufferedReaderForECSServers1 = new BufferedReader(fileReaderForECSServers1);
                     String lineForECSServers1;
@@ -110,7 +116,7 @@ public class ECSServer {
                         }
                     }
 
-                    File fileForECSServers2 = new File("./" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + "_ecsServers" + ".txt");
+                    File fileForECSServers2 = new File(macroDefinitions.getEcsFilePath() + "/" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + "_ecsServers" + ".txt");
                     FileReader fileReaderForECSServers2 = new FileReader(fileForECSServers2);
                     BufferedReader bufferedReaderForECSServers2 = new BufferedReader(fileReaderForECSServers2);
                     String lineForECSServers2;
