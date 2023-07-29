@@ -249,7 +249,7 @@ public class ServerConnection extends Thread {
      * @return
      */
     public synchronized void updateMetadataFile() {
-        File file = new File(macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort() + ".txt");
+        File file = new File("./" + macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort() + "_metadataFile" + ".txt");
         try {
             String totalMetadataToFile = "";
             FileWriter fileWriter = new FileWriter(file);
@@ -308,24 +308,17 @@ public class ServerConnection extends Thread {
                         case "YOUARENEWCOORDINATOR":
                             ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
                             metadata = (Map<List<String>, List<String>>) objectInputStream.readObject();
+                            updateMetadataFile();
 
-                            File file = new File(macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + ".txt");
-                            try {
-                                String totalMetadataToFile = "";
-                                FileWriter fileWriter = new FileWriter(file);
-                                BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
-                                for (Map.Entry<List<String>, List<String>> entry : metadata.entrySet()) {
-                                    List<String> serverAddressAndPort = entry.getKey();
-                                    totalMetadataToFile += serverAddressAndPort.get(0) + ":" + serverAddressAndPort.get(1) + " ";
 
-                                    try (Socket socketForFirstReplicaServer = new Socket(serverAddressAndPort.get(0), Integer.valueOf(serverAddressAndPort.get(1)));
-                                         OutputStream outputStreamForTargetServer = socketForFirstReplicaServer.getOutputStream()){
-                                        messageSendGet.sendMessage(outputStreamForTargetServer, "NEWECSCOORDINATOR " + macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort());
-                                    }
+
+                            for (Map.Entry<List<String>, List<String>> entry : metadata.entrySet()) {
+                                List<String> serverAddressAndPort = entry.getKey();
+                                try (Socket socketForFirstReplicaServer = new Socket(serverAddressAndPort.get(0), Integer.valueOf(serverAddressAndPort.get(1)));
+                                     OutputStream outputStreamForTargetServer = socketForFirstReplicaServer.getOutputStream()){
+                                    messageSendGet.sendMessage(outputStreamForTargetServer, "NEWECSCOORDINATOR " + macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort());
                                 }
-                                String totalMetadataToFile2 = totalMetadataToFile.substring(0, totalMetadataToFile.length() - 1);
-                                bufferedWriter.write(totalMetadataToFile2);
-                            } catch (Exception e){}
+                            }
                                 continue;
                         default:
                             messageSendGet.sendMessage(outputStream, "error unknown command!");

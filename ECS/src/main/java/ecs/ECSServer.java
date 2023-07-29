@@ -82,27 +82,47 @@ public class ECSServer {
                 }
             }
 
-            File file = new File("./" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + ".txt");
-
             // ****************************************************************************************************
             // SHUTDOWN HOOK
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                String targetECS = "";
                 try {
-                    FileReader fileReader = new FileReader(file);
-                    BufferedReader bufferedReader = new BufferedReader(fileReader);
-                    String line;
-                    while ((line = bufferedReader.readLine()) != null) {
-                        if(!line.equals(macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort())){
-                            try (Socket socketForFirstReplicaServer = new Socket(line.split(":")[0], Integer.valueOf(line.split(":")[1]));
-                                 OutputStream outputStreamForTargetECS = socketForFirstReplicaServer.getOutputStream()){
-                                outputStreamForTargetECS.write("YOUARENEWCOORDINATOR".getBytes());
-                                ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStreamForTargetECS);
-                                objectOutputStream.writeObject(metadata);
+                    File fileForECSServers1 = new File("./" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + "_ecsServers" + ".txt");
+                    FileReader fileReaderForECSServers1 = new FileReader(fileForECSServers1);
+                    BufferedReader bufferedReaderForECSServers1 = new BufferedReader(fileReaderForECSServers1);
+                    String lineForECSServers1;
+                    while ((lineForECSServers1 = bufferedReaderForECSServers1.readLine()) != null) {
+                        for(int eachECSServer = 0; eachECSServer < lineForECSServers1.split(" ").length; eachECSServer++){
+                            if(!(lineForECSServers1.split(" ")[eachECSServer].split(":")[0].equals(macroDefinitions.getListenAddress()) &&
+                                    lineForECSServers1.split(" ")[eachECSServer].split(":")[1].equals(Integer.toString(macroDefinitions.getServerPort())))){
+                                targetECS = lineForECSServers1.split(":")[0] + ":" + Integer.valueOf(lineForECSServers1.split(":")[1];
                                 break;
                             }
                         }
                     }
-                } catch (Exception e) {} {}
+
+                    File fileForECSServers2 = new File("./" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + "_ecsServers" + ".txt");
+                    FileReader fileReaderForECSServers2 = new FileReader(fileForECSServers2);
+                    BufferedReader bufferedReaderForECSServers2 = new BufferedReader(fileReaderForECSServers2);
+                    String lineForECSServers2;
+                    String allECSServers = ""; // To send
+                    while ((lineForECSServers2 = bufferedReaderForECSServers2.readLine()) != null) {
+                        for(int eachECSServer = 0; eachECSServer < lineForECSServers2.split(" ").length; eachECSServer++){
+                            if(!(lineForECSServers2.split(" ")[eachECSServer].split(":")[0].equals(macroDefinitions.getListenAddress()) &&
+                                    lineForECSServers2.split(" ")[eachECSServer].split(":")[1].equals(Integer.toString(macroDefinitions.getServerPort())))){
+                                allECSServers += lineForECSServers2.split(" ")[eachECSServer] + " ";
+                            }
+                        }
+                    }
+
+                    try (Socket socketForFirstReplicaServer = new Socket(targetECS.split(":")[0], Integer.valueOf(targetECS.split(":")[1]));
+                         OutputStream outputStreamForTargetECS = socketForFirstReplicaServer.getOutputStream()){
+                        outputStreamForTargetECS.write("YOUARENEWCOORDINATOR".getBytes()); // Send message to new coordiantor
+                        ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStreamForTargetECS);
+                        objectOutputStream.writeObject(metadata); // Send metadata to new coordiantor
+                        outputStreamForTargetECS.write(allECSServers.getBytes()); // Send all ECS servers to new coordiantor
+                    }
+                } catch (Exception e) {}
             }));
             // SHUTDOWN HOOK
             // ****************************************************************************************************
