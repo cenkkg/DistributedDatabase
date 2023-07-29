@@ -90,7 +90,6 @@ public class ECSServer {
                 try {
                     FileReader fileReader = new FileReader(file);
                     BufferedReader bufferedReader = new BufferedReader(fileReader);
-                    String allECSServers = "";
                     String line;
                     while ((line = bufferedReader.readLine()) != null) {
                         if(!line.equals(macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort())){
