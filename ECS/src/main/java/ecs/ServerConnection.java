@@ -310,7 +310,13 @@ public class ServerConnection extends Thread {
                         case "YOUARENEWCOORDINATOR":
                             ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
                             metadata = (Map<List<String>, List<String>>) objectInputStream.readObject();
-                            updateMetadataFile();
+                            //updateMetadataFile();
+                            for (List<String> keys: metadata.keySet()) {
+                                for (String key : keys) {
+                                    System.out.println(key);
+                                }
+                            }
+
                             for (Map.Entry<List<String>, List<String>> entry : metadata.entrySet()) {
                                 List<String> serverAddressAndPort = entry.getKey();
                                 try (Socket socketForFirstReplicaServer = new Socket(serverAddressAndPort.get(0), Integer.valueOf(serverAddressAndPort.get(1)));
@@ -319,10 +325,12 @@ public class ServerConnection extends Thread {
                                 }
                             }
                             String newECSs = (String) objectInputStream.readObject();
+                            System.out.println(newECSs);
                             File fileForECSServers = new File(macroDefinitions.getEcsFilePath() + "/" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + "_ecsServers" + ".txt");
                             FileWriter fileWriterForECSServers = new FileWriter(fileForECSServers);
                             BufferedWriter bufferedWriterForECSServers = new BufferedWriter(fileWriterForECSServers);
                             bufferedWriterForECSServers.write(newECSs);
+                            bufferedWriterForECSServers.close();
                             continue;
                         case "JOINECS":
                             File fileForECSServersForNewJoinECS = new File(macroDefinitions.getEcsFilePath() + "/" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + "_ecsServers" + ".txt");
