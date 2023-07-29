@@ -3,8 +3,10 @@ package ecs;
 import com.sun.source.tree.Tree;
 import macros.MacroDefinitions;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -309,9 +311,6 @@ public class ServerConnection extends Thread {
                             ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
                             metadata = (Map<List<String>, List<String>>) objectInputStream.readObject();
                             updateMetadataFile();
-
-
-
                             for (Map.Entry<List<String>, List<String>> entry : metadata.entrySet()) {
                                 List<String> serverAddressAndPort = entry.getKey();
                                 try (Socket socketForFirstReplicaServer = new Socket(serverAddressAndPort.get(0), Integer.valueOf(serverAddressAndPort.get(1)));
@@ -319,7 +318,12 @@ public class ServerConnection extends Thread {
                                     messageSendGet.sendMessage(outputStreamForTargetServer, "NEWECSCOORDINATOR " + macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort());
                                 }
                             }
-                                continue;
+                            String newECSs = (String) objectInputStream.readObject();
+                            File fileForECSServers = new File("./" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + "_ecsServers" + ".txt");
+                            FileWriter fileWriterForECSServers = new FileWriter(fileForECSServers);
+                            BufferedWriter bufferedWriterForECSServers = new BufferedWriter(fileWriterForECSServers);
+                            bufferedWriterForECSServers.write(newECSs);
+                            continue;
                         default:
                             messageSendGet.sendMessage(outputStream, "error unknown command!");
                     }
