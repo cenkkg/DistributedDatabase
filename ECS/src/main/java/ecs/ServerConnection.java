@@ -285,6 +285,7 @@ public class ServerConnection extends Thread {
                         case "JOIN":
                             String s = joinServer(getMessage.split(" ")[1]);
                             messageSendGet.sendMessage(outputStream, s);
+                            updateMetadataFile();
                             continue;
                         case "DATATRANSFERISDONE":
                             createMetaData();
@@ -298,9 +299,11 @@ public class ServerConnection extends Thread {
                                     }
                                 }
                             }
+                            updateMetadataFile();
                             continue;
                         case "EXIT":
                             messageSendGet.sendMessage(outputStream, removeServerFromMetaData(getMessage.split(" ")[1]));
+                            updateMetadataFile();
                             continue;
                         case "YOUARENEWCOORDINATOR":
                             ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
