@@ -339,6 +339,7 @@ public class ServerConnection extends Thread {
                             FileWriter fileWriterForNewJoinECS2 = new FileWriter(fileForECSServersForNewJoinECS2);
                             BufferedWriter bufferedWriterForNewJoinECS = new BufferedWriter(fileWriterForNewJoinECS2);
                             bufferedWriterForNewJoinECS.write(allECSServers);
+                            bufferedWriterForNewJoinECS.close();
                             continue;
                         default:
                             messageSendGet.sendMessage(outputStream, "error unknown command!");
