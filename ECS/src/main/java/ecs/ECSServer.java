@@ -82,6 +82,32 @@ public class ECSServer {
                 }
             }
 
+            File file = new File("./" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + ".txt");
+
+            // ****************************************************************************************************
+            // SHUTDOWN HOOK
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                try {
+                    FileReader fileReader = new FileReader(file);
+                    BufferedReader bufferedReader = new BufferedReader(fileReader);
+                    String allECSServers = "";
+                    String line;
+                    while ((line = bufferedReader.readLine()) != null) {
+                        if(!line.equals(macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort())){
+                            try (Socket socketForFirstReplicaServer = new Socket(line.split(":")[0], Integer.valueOf(line.split(":")[1]));
+                                 OutputStream outputStreamForTargetECS = socketForFirstReplicaServer.getOutputStream()){
+                                outputStreamForTargetECS.write("YOUARENEWCOORDINATOR".getBytes());
+                                ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStreamForTargetECS);
+                                objectOutputStream.writeObject(metadata);
+                                break;
+                            }
+                        }
+                    }
+                } catch (Exception e) {} {}
+            }));
+            // SHUTDOWN HOOK
+            // ****************************************************************************************************
+
 
             // Create ServerSocker and Socket. Get InputStream and OutputStream
             ServerSocket serverSocket = new ServerSocket(macroDefinitions.getServerPort());
