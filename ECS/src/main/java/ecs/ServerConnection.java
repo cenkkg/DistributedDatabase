@@ -324,6 +324,22 @@ public class ServerConnection extends Thread {
                             BufferedWriter bufferedWriterForECSServers = new BufferedWriter(fileWriterForECSServers);
                             bufferedWriterForECSServers.write(newECSs);
                             continue;
+                        case "JOINECS":
+                            File fileForECSServersForNewJoinECS = new File("./" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + "_ecsServers" + ".txt");
+                            FileReader fileReaderForNewJoinECS = new FileReader(fileForECSServersForNewJoinECS);
+                            BufferedReader bufferedReaderForNewJoinECS = new BufferedReader(fileReaderForNewJoinECS);
+                            String lineForNewJoinECS;
+                            String allECSServers = "";
+                            while ((lineForNewJoinECS = bufferedReaderForNewJoinECS.readLine()) != null) {
+                                allECSServers += lineForNewJoinECS;
+                            }
+                            allECSServers += " " + getMessage.split(" ")[1];
+
+                            File fileForECSServersForNewJoinECS2 = new File("./" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + "_ecsServers" + ".txt");
+                            FileWriter fileWriterForNewJoinECS2 = new FileWriter(fileForECSServersForNewJoinECS2);
+                            BufferedWriter bufferedWriterForNewJoinECS = new BufferedWriter(fileWriterForNewJoinECS2);
+                            bufferedWriterForNewJoinECS.write(allECSServers);
+                            continue;
                         default:
                             messageSendGet.sendMessage(outputStream, "error unknown command!");
                     }
