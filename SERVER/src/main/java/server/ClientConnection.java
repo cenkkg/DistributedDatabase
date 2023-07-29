@@ -85,16 +85,17 @@ public class ClientConnection extends Thread{
      */
     public synchronized void updateMemory(Data data) {
         String ourMD5 = helper.calculateMD5(data.getKey());
-
         Gson gson = new Gson();
         try (Reader reader = new FileReader(macroDefinitions.getMemoryFilePath())) {
             Data[] jsonArray = gson.fromJson(reader, Data[].class);
             List<Data> newDataArray = new ArrayList<>();
 
+            // Key update???
             boolean insertedOrNot = false;
             for (Data dataInMemory : jsonArray) {
                 if (!dataInMemory.getKey().equals(data.getKey())) {
                     if(helper.calculateMD5(dataInMemory.getKey()).compareTo(ourMD5) > 0 && !insertedOrNot){
+                        System.out.println("UPDATEMEMORY: " + data.getKey() + " " + data.getValue());
                         insertedOrNot = true;
                         newDataArray.add(data);
                         newDataArray.add(dataInMemory);
@@ -105,8 +106,14 @@ public class ClientConnection extends Thread{
                 }
             }
 
-            String jsonToWriteFile = gson.toJson(newDataArray);
-            helper.writeToFile(jsonToWriteFile, macroDefinitions.getMemoryFilePath());
+            if(!insertedOrNot){
+                newDataArray.add(data);
+                String jsonToWriteFile = gson.toJson(newDataArray);
+                helper.writeToFile(jsonToWriteFile, macroDefinitions.getMemoryFilePath());
+            } else{
+                String jsonToWriteFile = gson.toJson(newDataArray);
+                helper.writeToFile(jsonToWriteFile, macroDefinitions.getMemoryFilePath());
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
