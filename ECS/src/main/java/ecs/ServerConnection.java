@@ -296,7 +296,7 @@ public class ServerConnection extends Thread {
 
                                     try (Socket socketForFirstReplicaServer = new Socket(serverAddressAndPort.get(0), Integer.valueOf(serverAddressAndPort.get(1)));
                                          OutputStream outputStreamForTargetServer = socketForFirstReplicaServer.getOutputStream()){
-                                        messageSendGet.sendMessage(outputStreamForTargetServer, "NEWSERVER " + macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort());
+                                        messageSendGet.sendMessage(outputStreamForTargetServer, "NEWECSCOORDINATOR " + macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort());
                                     }
                                 }
                                 String totalMetadataToFile2 = totalMetadataToFile.substring(0, totalMetadataToFile.length() - 1);
