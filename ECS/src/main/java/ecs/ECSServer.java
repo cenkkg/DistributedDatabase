@@ -83,6 +83,15 @@ public class ECSServer {
             }
 
             // ****************************************************************************************************
+            // START HOOK
+            try (Socket socketForCoordinatorServer = new Socket(macroDefinitions.getCoordiantorServer().split(":")[0], Integer.valueOf(macroDefinitions.getCoordiantorServer().split(":")[1]));
+                 OutputStream outputStreamForCoordinatorServer = socketForCoordinatorServer.getOutputStream()){
+                messageSendGet.sendMessage(outputStreamForCoordinatorServer, "JOINECS");
+            }
+            // START HOOK
+            // ****************************************************************************************************
+
+            // ****************************************************************************************************
             // SHUTDOWN HOOK
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 String targetECS = "";
