@@ -95,7 +95,7 @@ public class ECSServer {
                         for(int eachECSServer = 0; eachECSServer < lineForECSServers1.split(" ").length; eachECSServer++){
                             if(!(lineForECSServers1.split(" ")[eachECSServer].split(":")[0].equals(macroDefinitions.getListenAddress()) &&
                                     lineForECSServers1.split(" ")[eachECSServer].split(":")[1].equals(Integer.toString(macroDefinitions.getServerPort())))){
-                                targetECS = lineForECSServers1.split(":")[0] + ":" + Integer.valueOf(lineForECSServers1.split(":")[1];
+                                targetECS = lineForECSServers1.split(":")[0] + ":" + Integer.valueOf(lineForECSServers1.split(":")[1]);
                                 break;
                             }
                         }
