@@ -87,6 +87,16 @@ public class ECSServer {
 
             // ****************************************************************************************************
             // START HOOK
+            File newECSServersFile = new File(macroDefinitions.getEcsFilePath() + "/" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + "_ecsServers" + ".txt");
+            File newMetadataFile   = new File(macroDefinitions.getEcsFilePath() + "/" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + "_metadataFile" + ".txt");
+            newECSServersFile.createNewFile();
+            newMetadataFile.createNewFile();
+
+            FileWriter fileWriteForECSServersFile = new FileWriter(newECSServersFile);
+            BufferedWriter bufferedWriterForECSServersFile = new BufferedWriter(fileWriteForECSServersFile);
+            bufferedWriterForECSServersFile.write(macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort());
+            bufferedWriterForECSServersFile.close();
+
             if(!(macroDefinitions.getCoordiantorServer().split(":")[0].equals(macroDefinitions.getListenAddress()) &&
                     macroDefinitions.getCoordiantorServer().split(":")[1].equals(Integer.toString(macroDefinitions.getServerPort())))){
                 try (Socket socketForCoordinatorServer = new Socket(macroDefinitions.getCoordiantorServer().split(":")[0], Integer.valueOf(macroDefinitions.getCoordiantorServer().split(":")[1]));
@@ -136,8 +146,12 @@ public class ECSServer {
                         ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStreamForTargetECS);
                         objectOutputStream.writeObject(metadata); // Send metadata to new coordiantor
                         outputStreamForTargetECS.write(allECSServers.getBytes()); // Send all ECS servers to new coordiantor
+
+                        outputStreamForTargetECS.close();
+                        objectOutputStream.close();
                     }
-                } catch (Exception e) {}
+                }
+                catch (Exception e) {}
             }));
             // SHUTDOWN HOOK
             // ****************************************************************************************************
