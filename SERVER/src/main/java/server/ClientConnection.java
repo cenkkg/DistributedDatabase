@@ -789,6 +789,12 @@ public class ClientConnection extends Thread{
                             continue;
                         case "ISREACHABLE":
                             messageSendGet.sendMessage(outputStream, "YES");
+                        case "NEWECSCOORDINATOR":
+                            ObjectInputStream objectInputStream1 = new ObjectInputStream(inputStream);
+                            String coordinatorECSAddress = (String) objectInputStream1.readObject();
+                            macroDefinitions.setBootstrapServerIP(coordinatorECSAddress.split(":")[0]);
+                            macroDefinitions.setBootstrapServerPort(Integer.parseInt(coordinatorECSAddress.split(":")[1]));
+                            continue;
                         default:
                             messageSendGet.sendMessage(outputStream, "Unknown command!");
                     }
