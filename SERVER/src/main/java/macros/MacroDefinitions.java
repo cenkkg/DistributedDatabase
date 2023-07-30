@@ -17,6 +17,10 @@ public class MacroDefinitions {
 
     public int bootstrapServerPort = 8888;
 
+    public String bootstrapperServerIP = "127.0.0.1";
+
+    public int bootstrapperPort = 38887;
+
     public String listenAddress = "127.0.0.1";
 
 
@@ -204,5 +208,52 @@ public class MacroDefinitions {
      */
     public void setBootstrapServerIP(String bootstrapServerIP) {
         this.bootstrapServerIP = bootstrapServerIP;
+    }
+
+
+    /**
+     * get ootstrapServerIP
+     *
+     * @param
+     * @return
+     */
+    public String getBootstrapperServerIP() {
+        return bootstrapperServerIP;
+    }
+
+    /**
+     * set ootstrapServerIP
+     *
+     * @param bootstrapServerIP
+     * @return
+     */
+    public void setBootstrapperServerIP(String bootstrapServerIP) {
+        this.bootstrapServerIP = bootstrapServerIP;
+    }
+
+    public void setBootstrapperServerPort(String bootstrapperServerPort){
+        this.bootstrapServerPort = bootstrapServerPort;
+    }
+
+
+
+    /**
+     * get Bootstrap Server Port
+     *
+     * @param
+     * @return bootstrapServerPort
+     */
+    public int getBootstrapperPort() {
+        return bootstrapperPort;
+    }
+
+    /**
+     * set Bootstrap Server Port
+     *
+     * @param bootstrapperServerPort
+     * @return
+     */
+    public void setBootstrapperPort(int bootstrapperServerPort) {
+        this.bootstrapperPort = bootstrapperServerPort;
     }
 }

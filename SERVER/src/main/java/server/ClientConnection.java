@@ -150,7 +150,7 @@ public class ClientConnection extends Thread{
                                 cache[eachElementInCache].setTimestamp(String.valueOf(System.currentTimeMillis()));
                                 cache[eachElementInCache].setFrequency(currentFrequency);
                                 updateMemory(cache[eachElementInCache]);
-                                logMethod("putData - " + key + " " + value);
+                                //logMethod("putData - " + key + " " + value);
                                 return ("put_update " + key);
                             }
                         }

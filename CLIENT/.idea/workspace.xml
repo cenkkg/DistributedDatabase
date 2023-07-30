@@ -5,9 +5,32 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8c4dc78a-76c9-48ce-b82f-e95112169c8c" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/cdb-client-1.0-SNAPSHOT.jar" beforeDir="false" afterPath="$PROJECT_DIR$/target/cdb-client-1.0-SNAPSHOT.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/client/ClientSocket.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/client/ClientSocket.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/client/ServerCommunication.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/client/ServerCommunication.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/macros/MacroDefinitions.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/inputFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/inputFiles.lst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/original-cdb-client-1.0-SNAPSHOT.jar" beforeDir="false" afterPath="$PROJECT_DIR$/target/original-cdb-client-1.0-SNAPSHOT.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/OutputStreamTest.txt" beforeDir="false" afterPath="$PROJECT_DIR$/target/surefire-reports/OutputStreamTest.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/TEST-OutputStreamTest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/target/surefire-reports/TEST-OutputStreamTest.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ECS/target/cdb-ecs-1.0-SNAPSHOT.jar" beforeDir="false" afterPath="$PROJECT_DIR$/../ECS/target/cdb-ecs-1.0-SNAPSHOT.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ECS/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/../ECS/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ECS/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/inputFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/../ECS/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/inputFiles.lst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ECS/target/original-cdb-ecs-1.0-SNAPSHOT.jar" beforeDir="false" afterPath="$PROJECT_DIR$/../ECS/target/original-cdb-ecs-1.0-SNAPSHOT.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ECS/target/surefire-reports/EcsServerTest.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../ECS/target/surefire-reports/EcsServerTest.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ECS/target/surefire-reports/TEST-EcsServerTest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../ECS/target/surefire-reports/TEST-EcsServerTest.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SERVER/.idea/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/../SERVER/.idea/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SERVER/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../SERVER/.idea/compiler.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SERVER/src/main/java/macros/MacroDefinitions.java" beforeDir="false" afterPath="$PROJECT_DIR$/../SERVER/src/main/java/macros/MacroDefinitions.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../SERVER/src/main/java/server/ClientConnection.java" beforeDir="false" afterPath="$PROJECT_DIR$/../SERVER/src/main/java/server/ClientConnection.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../SERVER/src/main/testData/data.json" beforeDir="false" afterPath="$PROJECT_DIR$/../SERVER/src/main/testData/data.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SERVER/src/main/java/server/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/../SERVER/src/main/java/server/Server.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SERVER/src/test/java/FunctionalitiesTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/../SERVER/src/test/java/FunctionalitiesTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -15,6 +38,11 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$/.." value="CodeReview_Server" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
   <component name="MarkdownSettingsMigration">
@@ -32,9 +60,18 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">
-    <property name="nodejs_package_manager_path" value="npm" />
-  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/selenuygun/Desktop/DistributedDatabase/CLIENT&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/src/main/java/macros" />
@@ -70,6 +107,10 @@
       <workItem from="1686002477021" duration="69000" />
       <workItem from="1686002751557" duration="29993000" />
       <workItem from="1686952810582" duration="11695000" />
+      <workItem from="1689283799810" duration="2881000" />
+      <workItem from="1689710611982" duration="764000" />
+      <workItem from="1690582139745" duration="1141000" />
+      <workItem from="1690646020323" duration="620000" />
     </task>
     <servers />
   </component>

@@ -85,10 +85,17 @@ public class Server {
                         macroDefinitions.setBootstrapServerIP(value.split(":")[0]);
                         macroDefinitions.setBootstrapServerPort(Integer.parseInt(value.split(":")[1]));
                         continue;
+                    case "-bs":
+                        macroDefinitions.setBootstrapperServerIP(value.split(":")[0]);
+                        macroDefinitions.setBootstrapperServerPort(String.valueOf(Integer.parseInt(value.split(":")[1])));
+
                     case "-h":
                         continue;
                 }
             }
+
+            //****************************************************************************************************
+            // MS5 Bootstrapper connection for server side
 
             // ****************************************************************************************************
             // MS3
