@@ -3,8 +3,10 @@ package ecs;
 import com.sun.source.tree.Tree;
 import macros.MacroDefinitions;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -249,7 +251,7 @@ public class ServerConnection extends Thread {
      * @return
      */
     public synchronized void updateMetadataFile() {
-        File file = new File(macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort() + ".txt");
+        File file = new File("./" + macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort() + "_metadataFile" + ".txt");
         try {
             String totalMetadataToFile = "";
             FileWriter fileWriter = new FileWriter(file);
@@ -308,25 +310,45 @@ public class ServerConnection extends Thread {
                         case "YOUARENEWCOORDINATOR":
                             ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
                             metadata = (Map<List<String>, List<String>>) objectInputStream.readObject();
-
-                            File file = new File(macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + ".txt");
-                            try {
-                                String totalMetadataToFile = "";
-                                FileWriter fileWriter = new FileWriter(file);
-                                BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
-                                for (Map.Entry<List<String>, List<String>> entry : metadata.entrySet()) {
-                                    List<String> serverAddressAndPort = entry.getKey();
-                                    totalMetadataToFile += serverAddressAndPort.get(0) + ":" + serverAddressAndPort.get(1) + " ";
-
-                                    try (Socket socketForFirstReplicaServer = new Socket(serverAddressAndPort.get(0), Integer.valueOf(serverAddressAndPort.get(1)));
-                                         OutputStream outputStreamForTargetServer = socketForFirstReplicaServer.getOutputStream()){
-                                        messageSendGet.sendMessage(outputStreamForTargetServer, "NEWECSCOORDINATOR " + macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort());
-                                    }
+                            //updateMetadataFile();
+                            for (List<String> keys: metadata.keySet()) {
+                                for (String key : keys) {
+                                    System.out.println(key);
                                 }
-                                String totalMetadataToFile2 = totalMetadataToFile.substring(0, totalMetadataToFile.length() - 1);
-                                bufferedWriter.write(totalMetadataToFile2);
-                            } catch (Exception e){}
-                                continue;
+                            }
+
+                            for (Map.Entry<List<String>, List<String>> entry : metadata.entrySet()) {
+                                List<String> serverAddressAndPort = entry.getKey();
+                                try (Socket socketForFirstReplicaServer = new Socket(serverAddressAndPort.get(0), Integer.valueOf(serverAddressAndPort.get(1)));
+                                     OutputStream outputStreamForTargetServer = socketForFirstReplicaServer.getOutputStream()){
+                                    messageSendGet.sendMessage(outputStreamForTargetServer, "NEWECSCOORDINATOR " + macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort());
+                                }
+                            }
+                            String newECSs = (String) objectInputStream.readObject();
+                            System.out.println(newECSs);
+                            File fileForECSServers = new File(macroDefinitions.getEcsFilePath() + "/" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + "_ecsServers" + ".txt");
+                            FileWriter fileWriterForECSServers = new FileWriter(fileForECSServers);
+                            BufferedWriter bufferedWriterForECSServers = new BufferedWriter(fileWriterForECSServers);
+                            bufferedWriterForECSServers.write(newECSs);
+                            bufferedWriterForECSServers.close();
+                            continue;
+                        case "JOINECS":
+                            File fileForECSServersForNewJoinECS = new File(macroDefinitions.getEcsFilePath() + "/" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + "_ecsServers" + ".txt");
+                            FileReader fileReaderForNewJoinECS = new FileReader(fileForECSServersForNewJoinECS);
+                            BufferedReader bufferedReaderForNewJoinECS = new BufferedReader(fileReaderForNewJoinECS);
+                            String lineForNewJoinECS;
+                            String allECSServers = "";
+                            while ((lineForNewJoinECS = bufferedReaderForNewJoinECS.readLine()) != null) {
+                                allECSServers += lineForNewJoinECS;
+                            }
+                            allECSServers += " " + getMessage.split(" ")[1];
+
+                            File fileForECSServersForNewJoinECS2 = new File(macroDefinitions.getEcsFilePath() + "/" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + "_ecsServers" + ".txt");
+                            FileWriter fileWriterForNewJoinECS2 = new FileWriter(fileForECSServersForNewJoinECS2);
+                            BufferedWriter bufferedWriterForNewJoinECS = new BufferedWriter(fileWriterForNewJoinECS2);
+                            bufferedWriterForNewJoinECS.write(allECSServers);
+                            bufferedWriterForNewJoinECS.close();
+                            continue;
                         default:
                             messageSendGet.sendMessage(outputStream, "error unknown command!");
                     }
