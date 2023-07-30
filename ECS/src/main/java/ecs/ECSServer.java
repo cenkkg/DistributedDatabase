@@ -16,8 +16,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ECSServer {
-    // Get logger
-    private static final Logger logger = Logger.getLogger(ECSServer.class.getName());
     private static Map<List<String>, List<String>> metadata = new HashMap<>();
     private static MessageSendGet messageSendGet = new MessageSendGet();
 
@@ -78,8 +76,36 @@ public class ECSServer {
                     case "-a":
                         macroDefinitions.setListenAddress(value);
                         continue;
+                    case "-c":
+                        macroDefinitions.setCoordiantorServer(value);
+                        continue;
                 }
             }
+
+            File file = new File("./" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + ".txt");
+
+            // ****************************************************************************************************
+            // SHUTDOWN HOOK
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                try {
+                    FileReader fileReader = new FileReader(file);
+                    BufferedReader bufferedReader = new BufferedReader(fileReader);
+                    String line;
+                    while ((line = bufferedReader.readLine()) != null) {
+                        if(!line.equals(macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort())){
+                            try (Socket socketForFirstReplicaServer = new Socket(line.split(":")[0], Integer.valueOf(line.split(":")[1]));
+                                 OutputStream outputStreamForTargetECS = socketForFirstReplicaServer.getOutputStream()){
+                                outputStreamForTargetECS.write("YOUARENEWCOORDINATOR".getBytes());
+                                ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStreamForTargetECS);
+                                objectOutputStream.writeObject(metadata);
+                                break;
+                            }
+                        }
+                    }
+                } catch (Exception e) {} {}
+            }));
+            // SHUTDOWN HOOK
+            // ****************************************************************************************************
 
 
             // Create ServerSocker and Socket. Get InputStream and OutputStream
@@ -102,8 +128,6 @@ public class ECSServer {
                     serverConnection.start();
                 }
             }
-        } catch (Exception exception) {
-            logger.log(Level.WARNING, "Error, connection can not be established!");
-        }
+        } catch (Exception exception) {}
     }
 }

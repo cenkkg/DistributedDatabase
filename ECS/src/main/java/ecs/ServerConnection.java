@@ -3,6 +3,9 @@ package ecs;
 import com.sun.source.tree.Tree;
 import macros.MacroDefinitions;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -12,6 +15,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.Extension;
 import java.util.*;
 import java.util.logging.FileHandler;
 import java.util.logging.Logger;
@@ -239,6 +243,27 @@ public class ServerConnection extends Thread {
     }
 
     /**
+     * Overwrite metadata file
+     *
+     * @param
+     * @return
+     */
+    public synchronized void updateMetadataFile() {
+        File file = new File(macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort() + ".txt");
+        try {
+            String totalMetadataToFile = "";
+            FileWriter fileWriter = new FileWriter(file);
+            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+            for (Map.Entry<List<String>, List<String>> entry : metadata.entrySet()) {
+                List<String> serverAddressAndPort = entry.getKey();
+                totalMetadataToFile += serverAddressAndPort.get(0) + ":" + serverAddressAndPort.get(1) + " ";
+            }
+            String totalMetadataToFile2 = totalMetadataToFile.substring(0, totalMetadataToFile.length() - 1);
+            bufferedWriter.write(totalMetadataToFile2);
+        } catch (Exception e){}
+    }
+
+    /**
      * Run method, which is running when thread starts. It is selecting command and call one of the suitable put-get-delete methods.
      *
      * @param
@@ -260,6 +285,7 @@ public class ServerConnection extends Thread {
                         case "JOIN":
                             String s = joinServer(getMessage.split(" ")[1]);
                             messageSendGet.sendMessage(outputStream, s);
+                            updateMetadataFile();
                             continue;
                         case "DATATRANSFERISDONE":
                             createMetaData();
@@ -273,25 +299,50 @@ public class ServerConnection extends Thread {
                                     }
                                 }
                             }
+                            updateMetadataFile();
                             continue;
                         case "EXIT":
                             messageSendGet.sendMessage(outputStream, removeServerFromMetaData(getMessage.split(" ")[1]));
+                            updateMetadataFile();
                             continue;
+                        case "YOUARENEWCOORDINATOR":
+                            ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
+                            metadata = (Map<List<String>, List<String>>) objectInputStream.readObject();
+
+                            File file = new File(macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + ".txt");
+                            try {
+                                String totalMetadataToFile = "";
+                                FileWriter fileWriter = new FileWriter(file);
+                                BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+                                for (Map.Entry<List<String>, List<String>> entry : metadata.entrySet()) {
+                                    List<String> serverAddressAndPort = entry.getKey();
+                                    totalMetadataToFile += serverAddressAndPort.get(0) + ":" + serverAddressAndPort.get(1) + " ";
+
+                                    try (Socket socketForFirstReplicaServer = new Socket(serverAddressAndPort.get(0), Integer.valueOf(serverAddressAndPort.get(1)));
+                                         OutputStream outputStreamForTargetServer = socketForFirstReplicaServer.getOutputStream()){
+                                        messageSendGet.sendMessage(outputStreamForTargetServer, "NEWECSCOORDINATOR " + macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort());
+                                    }
+                                }
+                                String totalMetadataToFile2 = totalMetadataToFile.substring(0, totalMetadataToFile.length() - 1);
+                                bufferedWriter.write(totalMetadataToFile2);
+                            } catch (Exception e){}
+                                continue;
                         default:
                             messageSendGet.sendMessage(outputStream, "error unknown command!");
                     }
-                } catch (Exception exception){
+                }
+                catch (Exception exception){
                     isOpen = false;
                     break;
                 }
             }
-        } catch (Exception exception){
+        }
+        catch (Exception exception){
             try {
                 logMethod("Exception");
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            // logger.log(Level.WARNING, "Streams are not working!");
         }
         finally {
             try {
