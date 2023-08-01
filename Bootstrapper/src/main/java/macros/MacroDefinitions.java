@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class MacroDefinitions {
-    public int serverPort = 38887;
+    public int serverPort = 38846;
 
     public String listenAddress;
 }

@@ -71,6 +71,7 @@ public class Bootstrapper {
         byte[] aesKeyBytes = secretKey.getEncoded();
 
         // Convert the AES key bytes to a string
+        System.out.println(bytesToHexString(aesKeyBytes));
         return bytesToHexString(aesKeyBytes);
     }
 
@@ -106,6 +107,7 @@ public class Bootstrapper {
 
                 // Split the input data by spaces
                 String[] parts = message.split(" ");
+                System.out.println(parts);
 
                 // check if the message received correctly for encryption
                 if (parts.length == 5) {
@@ -114,15 +116,22 @@ public class Bootstrapper {
                     String targetIP = parts[2];
                     String targetPort = parts[3];
                     String type = parts[4];
+                    System.out.println(sourceIP);
+                    System.out.println(sourcePort);
+                    System.out.println(targetIP);
+                    System.out.println(targetPort);
+                    System.out.println(type);
 
                     // create the encryption keys and send to source
                     if (type == "ENC") {
                         String encryptionKey = generateEncryptionKey(sourceIP,sourcePort,targetIP,targetPort);
+                        System.out.println(encryptionKey);
                         messageSendGet.sendMessage(outputStream,encryptionKey);
                         clientSocket.close();
                     }
+                    // create the decryption keys and send to source
                     else{
-                        // create the decryption keys and send to source
+
                         String decryptionKey = generateDecryptionKey(sourceIP,sourcePort,targetIP,targetPort);
                         messageSendGet.sendMessage(outputStream,decryptionKey);
                         clientSocket.close();
