@@ -1,14 +1,19 @@
 package client;
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
 public class ClientSocket {
 
     private static final Logger logger = Logger.getLogger (ClientSocket.class.getName());
-    public static void main(String[] args) throws IOException, ClassNotFoundException {
+    public static void main(String[] args) throws IOException, ClassNotFoundException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException {
 
         ServerCommunication serverCommunication = new ServerCommunication();
 
@@ -27,6 +32,8 @@ public class ClientSocket {
                     try {
                         serverCommunication.createSocket(tokens[1], Integer.parseInt(tokens[2]));
                         isConnected = true; // Set connection status to true
+                        // Get the local port used by the client-side socket
+
                     }
                     catch (Exception e) {System.out.print("See command 'help' \n");}
                     continue;
@@ -81,7 +88,9 @@ public class ClientSocket {
                         serverCommunication.getHelp();
                     }
                     else {
-                        serverCommunication.getData(tokens[1]);
+                        System.out.println(tokens[1]);
+                        String response = serverCommunication.encryptData(tokens[1]);
+                        serverCommunication.getData(response);
                     }
                     continue;
                 case "delete":
@@ -94,7 +103,9 @@ public class ClientSocket {
                         serverCommunication.getHelp();
                     }
                     else {
-                        serverCommunication.deleteData(tokens[1]);
+                        System.out.println(tokens[1]);
+                        String response = serverCommunication.encryptData(tokens[1]);
+                        serverCommunication.deleteData(response);
                     }
                     continue;
                 case "logLevel":
@@ -112,6 +123,30 @@ public class ClientSocket {
                     break;
                 case "keyrange":
                     serverCommunication.getKeyrange();
+                case "encrypt":
+                    if (tokens.length != 6) {
+                        System.out.print("EchoClient> Unknown command \n");
+                    }
+                    else if (isConnected == false){
+                        System.out.print("EchoClient> You are not connected \n");
+                        serverCommunication.getHelp();
+                    }
+                    else {
+                        String newValue = "";
+                        for (int i = 0; i < tokens.length; i++) {
+                            if(i == 0){
+                                continue;
+                            } else if (i == tokens.length - 1) {
+                                newValue = newValue + tokens[i];
+                            } else{
+                                newValue = newValue + tokens[i] + " ";
+                            }
+                        }
+                        serverCommunication.connectEncryptionServer(newValue);
+                    }
+                    if (isConnected == false){
+                        System.out.print("EchoClient> You are not connected \n");
+                    }
                     continue;
                 default:
                     System.out.print("Unknown command \n");

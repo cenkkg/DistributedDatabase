@@ -1,13 +1,17 @@
 package client;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -22,6 +26,9 @@ public class ServerCommunication {
 
     // Metadata
     Map<List<String>, List<String>> metadataStore = new HashMap<>();
+
+    // Encrypted Request
+    List<String> requestList = new ArrayList<>();
 
     public void setOutputStream(OutputStream outputStream) {
         this.outputStream = outputStream;
@@ -44,6 +51,32 @@ public class ServerCommunication {
         return false;
     }
 
+
+    String encryptData(String data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException, NoSuchAlgorithmException {
+        String encryptionKey = requestList.get(0); // Replace with your own key
+        requestList.clear();
+
+        // Convert the encryption key to bytes and create a SecretKeySpec
+        byte[] keyBytes = encryptionKey.getBytes(StandardCharsets.UTF_8);
+        SecretKeySpec secretKey = new SecretKeySpec(keyBytes, "AES");
+
+        // Initialize the cipher with AES algorithm and mode
+        Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+
+        // Encrypt the data
+        byte[] encryptedBytes = cipher.doFinal(data.getBytes());
+
+        // Convert the encrypted bytes to a Base64-encoded string for safe transmission/storage
+        String encryptedData = Base64.getEncoder().encodeToString(encryptedBytes);
+
+        System.out.println("Original data: " + data);
+        System.out.println("Encryption key: " + encryptionKey);
+        System.out.println("Encrypted data: " + encryptedData);
+        return  encryptedData;
+    }
+
+
     /**
      * Tries to establish a TCP- connection to
      * the echo server based on the given server
@@ -63,6 +96,9 @@ public class ServerCommunication {
             this.port = port;
 
             connected = true;
+
+            int clientPort = socket.getLocalPort();
+            System.out.println("Client port: " + clientPort);
         }
         catch (Exception e) {
             System.out.println("Error, connection refused.");
@@ -476,6 +512,23 @@ public class ServerCommunication {
 
             ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
             metadataStore = (Map<List<String>, List<String>>)objectInputStream.readObject();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void connectEncryptionServer(String newValue) {
+        try {
+            MessageSendGet messageSendGet = new MessageSendGet();
+            System.out.println(newValue);
+            messageSendGet.sendMessage(outputStream, newValue);
+
+            String requestOutputFromServer = messageSendGet.getMessage(inputStream);
+            requestList.add(requestOutputFromServer);
+            System.out.println(requestList);
+
+            System.out.println("EchoClient> " + requestOutputFromServer);
         }
         catch (Exception e) {
             e.printStackTrace();
