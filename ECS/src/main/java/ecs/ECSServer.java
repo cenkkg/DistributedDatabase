@@ -118,42 +118,44 @@ public class ECSServer {
                         FileReader fileReaderForECSServers1 = new FileReader(fileForECSServers1);
                         BufferedReader bufferedReaderForECSServers1 = new BufferedReader(fileReaderForECSServers1);
                         String lineForECSServers1;
-                        while ((lineForECSServers1 = bufferedReaderForECSServers1.readLine()) != null) {
-                            for (int eachECSServer = 0; eachECSServer < lineForECSServers1.split(" ").length; eachECSServer++) {
-                                if (!(lineForECSServers1.split(" ")[eachECSServer].split(":")[0].equals(macroDefinitions.getListenAddress()) &&
-                                        lineForECSServers1.split(" ")[eachECSServer].split(":")[1].equals(Integer.toString(macroDefinitions.getServerPort())))) {
-                                    targetECS = lineForECSServers1.split(":")[0] + ":" + Integer.valueOf(lineForECSServers1.split(":")[1]);
-                                    break;
-                                }
+
+                        lineForECSServers1 = bufferedReaderForECSServers1.readLine();
+                        for (int eachECSServer = 0; eachECSServer < lineForECSServers1.split(" ").length; eachECSServer++) {
+                            if (!(lineForECSServers1.split(" ")[eachECSServer].split(":")[0].equals(macroDefinitions.getListenAddress()) &&
+                                    lineForECSServers1.split(" ")[eachECSServer].split(":")[1].equals(Integer.toString(macroDefinitions.getServerPort())))) {
+                                targetECS =  lineForECSServers1.split(" ")[eachECSServer].split(":")[0] + ":" + lineForECSServers1.split(" ")[eachECSServer].split(":")[1];
+                                break;
                             }
                         }
 
                         File fileForECSServers2 = new File(macroDefinitions.getEcsFilePath() + "/" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + "_ecsServers" + ".txt");
                         FileReader fileReaderForECSServers2 = new FileReader(fileForECSServers2);
                         BufferedReader bufferedReaderForECSServers2 = new BufferedReader(fileReaderForECSServers2);
-                        String lineForECSServers2;
+                        String lineForECSServers2 = bufferedReaderForECSServers2.readLine();
                         String allECSServers = ""; // To send
-                        while ((lineForECSServers2 = bufferedReaderForECSServers2.readLine()) != null) {
-                            for (int eachECSServer = 0; eachECSServer < lineForECSServers2.split(" ").length; eachECSServer++) {
-                                if (!(lineForECSServers2.split(" ")[eachECSServer].split(":")[0].equals(macroDefinitions.getListenAddress()) &&
-                                        lineForECSServers2.split(" ")[eachECSServer].split(":")[1].equals(Integer.toString(macroDefinitions.getServerPort())))) {
-                                    allECSServers += lineForECSServers2.split(" ")[eachECSServer] + " ";
-                                }
+                        for (int eachECSServer = 0; eachECSServer < lineForECSServers2.split(" ").length; eachECSServer++) {
+                            if (!(lineForECSServers2.split(" ")[eachECSServer].split(":")[0].equals(macroDefinitions.getListenAddress()) &&
+                                    lineForECSServers2.split(" ")[eachECSServer].split(":")[1].equals(Integer.toString(macroDefinitions.getServerPort())))) {
+                                allECSServers += lineForECSServers2.split(" ")[eachECSServer] + " ";
                             }
                         }
+                        allECSServers = allECSServers.trim();
 
                         try (Socket socketForFirstReplicaServer = new Socket(targetECS.split(":")[0], Integer.valueOf(targetECS.split(":")[1]));
                              OutputStream outputStreamForTargetECS = socketForFirstReplicaServer.getOutputStream()) {
-                            outputStreamForTargetECS.write("YOUARENEWCOORDINATOR".getBytes()); // Send message to new coordiantor
-                            ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStreamForTargetECS);
-                            objectOutputStream.writeObject(metadata); // Send metadata to new coordiantor
-                            outputStreamForTargetECS.write(allECSServers.getBytes()); // Send all ECS servers to new coordiantor
 
-                            outputStreamForTargetECS.close();
-                            objectOutputStream.close();
+                            messageSendGet.sendMessage(outputStreamForTargetECS, "YOUARENEWCOORDINATOR"); // Send message to new coordiantor
+
+                            File fileForMetadataFile = new File(macroDefinitions.getEcsFilePath() + "/" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + "_metadataFile" + ".txt");
+                            FileReader fileReaderForMetadataFile = new FileReader(fileForMetadataFile);
+                            BufferedReader bufferedReaderForMetadataFile = new BufferedReader(fileReaderForMetadataFile);
+                            String lineOfMetadata = bufferedReaderForMetadataFile.readLine();
+
+
+                            messageSendGet.sendMessage(outputStreamForTargetECS, lineOfMetadata);
+                            messageSendGet.sendMessage(outputStreamForTargetECS, allECSServers);
                         }
-                    } catch (Exception e) {
-                    }
+                    } catch (Exception e) {}
                 }
             }));
             // SHUTDOWN HOOK

@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
-Test set: OutputStreamTest
+Test set: FunctionalitiesTest
 -------------------------------------------------------------------------------
-Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.359 s - in OutputStreamTest
+Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.824 s - in FunctionalitiesTest

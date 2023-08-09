@@ -103,7 +103,7 @@ public class Helper {
      * @return
      */
     public synchronized boolean dataInRangeOrNotChecker(String inputDataString, Map<List<String>, List<String>> metadata, String listenAddress, int listenPort) {
-        String dataMD5Value = extractValue(inputDataString);
+        String dataMD5Value = calculateMD5(inputDataString);
 
         // Only one server in cluster.
         if(metadata.size() == 1){ return true; }
