@@ -70,12 +70,14 @@ public class ServerCommunication {
 
             connected = false;
 
+            /*
             System.out.print("EchoClient> ");
             System.out.print("Connection terminated: ");
             System.out.print(DNS);
             System.out.print(" / ");
             System.out.print(port);
             System.out.print("\n");
+             */
         }
         else{
             System.out.print("You need to be connected first.");

@@ -17,4 +17,6 @@ public class MacroDefinitions {
     public String listenAddress;
 
     public String coordiantorServer;
+
+    public String ecsFilePath;
 }
