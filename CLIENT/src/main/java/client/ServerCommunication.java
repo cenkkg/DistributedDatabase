@@ -1,7 +1,9 @@
 package client;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.crypto.*;
-import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.net.Socket;
@@ -10,10 +12,10 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
+@Getter
+@Setter
 public class ServerCommunication {
-    private static final Logger logger = Logger.getLogger(ServerCommunication.class.getName());
     Socket socket;
     String DNS;
     int port;
@@ -26,29 +28,6 @@ public class ServerCommunication {
 
     // keys and corresponding iv values
     List<String> keyList = new ArrayList<>();
-
-    public void setOutputStream(OutputStream outputStream) {
-        this.outputStream = outputStream;
-    }
-
-    /**
-     * Checks if entered log level is valid
-     *
-     * @param level  specified log level
-     * @return boolean value
-     */
-    private boolean isAcceptedLogLevel(Level level) {
-        Level[] validlevels = {Level.ALL, Level.CONFIG, Level.FINE, Level.FINEST, Level.INFO, Level.OFF, Level.SEVERE, Level.WARNING};
-
-        for (Level acceptedLevel : validlevels) {
-            if (level.equals(acceptedLevel)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-
 
 
     /**
@@ -184,47 +163,17 @@ public class ServerCommunication {
     }
 
     /**
-     * Sets the logger to the specified log level.
-     *
-     * @param loglevel  byte array message to be echoed
+     * Encrypt String value with key
+     * @param message String to encrypt
+     * @param sharedKey String to use as key for encryption
      *
      */
-    public void setLogLevel(String loglevel) {
-        try {
-            Level currentLogLevel = logger.getLevel();
-            if (currentLogLevel != Level.parse(loglevel)) {
-                if (isAcceptedLogLevel(Level.parse(loglevel))) {
-                    System.out.println("EchoClient> logLevel set from " + currentLogLevel + " to " + loglevel);
-                    // Update the log level of the program
-                    logger.setLevel(Level.parse(loglevel));
-                }
-            }
-            else {
-                System.out.print("EchoClient> logLevel is already " + currentLogLevel + "\n");
-            }
-
-        } catch (Exception e) {
-            System.out.print("Unknown command \n");
-            getHelp();
-        }
-    }
-
-
     public static byte[] aesEncrypt(String message, String sharedKey) throws Exception {
-        // Convert sharedKey string to bytes using UTF-8 encoding
         byte[] sharedKeyBytes = sharedKey.getBytes(StandardCharsets.UTF_8);
-
-        // You should use a proper key derivation function (KDF) here to generate a valid AES key
-        // For demonstration purposes, we'll use the first 16 bytes of the sharedKeyBytes
         byte[] aesKeyBytes = new byte[16];
         System.arraycopy(sharedKeyBytes, 0, aesKeyBytes, 0, Math.min(sharedKeyBytes.length, 16));
-
-
         SecretKey key = new SecretKeySpec(aesKeyBytes, "AES");
-
-
         Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-
         cipher.init(Cipher.ENCRYPT_MODE, key);
         return cipher.doFinal(message.getBytes(StandardCharsets.UTF_8));
     }
@@ -476,23 +425,12 @@ public class ServerCommunication {
         }
     }
 
-
     public static String byteArrayToHexString(byte[] bytes) {
         StringBuilder result = new StringBuilder();
         for (byte b : bytes) {
             result.append(String.format("%02X", b));
         }
         return result.toString();
-    }
-
-    public static byte[] hexStringToBytes(String hexString) {
-        int len = hexString.length();
-        byte[] data = new byte[len / 2];
-        for (int i = 0; i < len; i += 2) {
-            data[i / 2] = (byte) ((Character.digit(hexString.charAt(i), 16) << 4)
-                    + Character.digit(hexString.charAt(i + 1), 16));
-        }
-        return data;
     }
 
     /**
@@ -517,7 +455,6 @@ public class ServerCommunication {
      *
      *
      */
-
     public void getKeyrangeHelper() {
         try {
             MessageSendGet messageSendGet = new MessageSendGet();
@@ -530,7 +467,6 @@ public class ServerCommunication {
             e.printStackTrace();
         }
     }
-
 
 
     /**

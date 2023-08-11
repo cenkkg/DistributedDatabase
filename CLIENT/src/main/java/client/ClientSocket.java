@@ -2,7 +2,6 @@ package client;
 import java.io.*;
 import java.net.Socket;
 import java.util.Arrays;
-import java.util.logging.Logger;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -28,7 +27,6 @@ public class ClientSocket {
         } catch (Exception e) {throw new RuntimeException(e);}
     }
 
-    private static final Logger logger = Logger.getLogger (ClientSocket.class.getName());
     public static void main(String[] args) throws Exception {
 
         ServerCommunication serverCommunication = new ServerCommunication();
@@ -51,7 +49,6 @@ public class ClientSocket {
                         serverCommunication.createSocket(tokens[1], Integer.parseInt(tokens[2]));
                         isConnected = true; // Set connection status to true
                         // Get the local port used by the client-side socket
-
                     }
                     catch (Exception e) {System.out.print("See command 'help' \n");}
                     continue;
@@ -85,22 +82,19 @@ public class ClientSocket {
                     else {
                         String newValue = "";
                         for (int i = 0; i < tokens.length; i++) {
-                            if(i == 0 || i == 1){
-                                continue;
-                            } else if (i == tokens.length - 1) {
+                            if(i == 0 || i == 1){}
+                            else if (i == tokens.length - 1) {
                                 newValue = newValue + tokens[i];
-                            } else{
+                            }
+                            else{
                                 newValue = newValue + tokens[i] + " ";
                             }
                         }
-                        // encrypt key and then value
-                        System.out.println(tokens[1]);
 
-
-
-                        //byte[] response = serverCommunication.encrypt(tokens[1],encryptionKey,serverCommunication.hexStringToByteArray(serverCommunication.keyList.get(0)));
-                        //System.out.println(response);
-                        serverCommunication.putData(tokens[1], newValue);
+                        String encrytionKey = getKeyFromBootstrapper(serverCommunication.DNS, Integer.toString(serverCommunication.port));
+                        byte[] response1 = ServerCommunication.aesEncrypt(tokens[1], encrytionKey);
+                        byte[] response2 = ServerCommunication.aesEncrypt(newValue, encrytionKey);
+                        serverCommunication.putData(ServerCommunication.byteArrayToHexString(response1), ServerCommunication.byteArrayToHexString(response2));
                     }
                     continue;
                 case "get":
@@ -128,16 +122,13 @@ public class ClientSocket {
                         serverCommunication.getHelp();
                     }
                     else {
-                        System.out.println(tokens[1]);
-                        //String response = serverCommunication.encryptData(tokens[1]);
-                        //serverCommunication.deleteData(response);
+                        String encrytionKey = getKeyFromBootstrapper(serverCommunication.DNS, Integer.toString(serverCommunication.port));
+                        byte[] response = ServerCommunication.aesEncrypt(tokens[1], encrytionKey);
+                        serverCommunication.deleteData(ServerCommunication.byteArrayToHexString(response));
                     }
                     continue;
                 case "logLevel":
-                    if (tokens.length > 1) {
-                        String logLevel = tokens[1];
-                        serverCommunication.setLogLevel(logLevel);
-                    }
+                    if (tokens.length > 1) {}
                     continue;
                 case "help":
                     serverCommunication.getHelp();
