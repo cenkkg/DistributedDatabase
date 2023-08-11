@@ -1,18 +1,21 @@
 package client;
 
+import lombok.Getter;
+import lombok.Setter;
+
+import javax.crypto.*;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
+@Getter
+@Setter
 public class ServerCommunication {
-    private static final Logger logger = Logger.getLogger(ServerCommunication.class.getName());
     Socket socket;
     String DNS;
     int port;
@@ -23,26 +26,9 @@ public class ServerCommunication {
     // Metadata
     Map<List<String>, List<String>> metadataStore = new HashMap<>();
 
-    public void setOutputStream(OutputStream outputStream) {
-        this.outputStream = outputStream;
-    }
+    // keys and corresponding iv values
+    List<String> keyList = new ArrayList<>();
 
-    /**
-     * Checks if entered log level is valid
-     *
-     * @param level  specified log level
-     * @return boolean value
-     */
-    private boolean isAcceptedLogLevel(Level level) {
-        Level[] validlevels = {Level.ALL, Level.CONFIG, Level.FINE, Level.FINEST, Level.INFO, Level.OFF, Level.SEVERE, Level.WARNING};
-
-        for (Level acceptedLevel : validlevels) {
-            if (level.equals(acceptedLevel)) {
-                return true;
-            }
-        }
-        return false;
-    }
 
     /**
      * Tries to establish a TCP- connection to
@@ -63,6 +49,9 @@ public class ServerCommunication {
             this.port = port;
 
             connected = true;
+
+            int clientPort = socket.getLocalPort();
+            System.out.println("Client port: " + clientPort);
         }
         catch (Exception e) {
             System.out.println("Error, connection refused.");
@@ -174,29 +163,19 @@ public class ServerCommunication {
     }
 
     /**
-     * Sets the logger to the specified log level.
-     *
-     * @param loglevel  byte array message to be echoed
+     * Encrypt String value with key
+     * @param message String to encrypt
+     * @param sharedKey String to use as key for encryption
      *
      */
-    public void setLogLevel(String loglevel) {
-        try {
-            Level currentLogLevel = logger.getLevel();
-            if (currentLogLevel != Level.parse(loglevel)) {
-                if (isAcceptedLogLevel(Level.parse(loglevel))) {
-                    System.out.println("EchoClient> logLevel set from " + currentLogLevel + " to " + loglevel);
-                    // Update the log level of the program
-                    logger.setLevel(Level.parse(loglevel));
-                }
-            }
-            else {
-                System.out.print("EchoClient> logLevel is already " + currentLogLevel + "\n");
-            }
-
-        } catch (Exception e) {
-            System.out.print("Unknown command \n");
-            getHelp();
-        }
+    public static byte[] aesEncrypt(String message, String sharedKey) throws Exception {
+        byte[] sharedKeyBytes = sharedKey.getBytes(StandardCharsets.UTF_8);
+        byte[] aesKeyBytes = new byte[16];
+        System.arraycopy(sharedKeyBytes, 0, aesKeyBytes, 0, Math.min(sharedKeyBytes.length, 16));
+        SecretKey key = new SecretKeySpec(aesKeyBytes, "AES");
+        Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+        cipher.init(Cipher.ENCRYPT_MODE, key);
+        return cipher.doFinal(message.getBytes(StandardCharsets.UTF_8));
     }
 
 
@@ -446,6 +425,14 @@ public class ServerCommunication {
         }
     }
 
+    public static String byteArrayToHexString(byte[] bytes) {
+        StringBuilder result = new StringBuilder();
+        for (byte b : bytes) {
+            result.append(String.format("%02X", b));
+        }
+        return result.toString();
+    }
+
     /**
      * Get keyrange from storage/server
      *
@@ -468,7 +455,6 @@ public class ServerCommunication {
      *
      *
      */
-
     public void getKeyrangeHelper() {
         try {
             MessageSendGet messageSendGet = new MessageSendGet();
@@ -476,6 +462,34 @@ public class ServerCommunication {
 
             ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
             metadataStore = (Map<List<String>, List<String>>)objectInputStream.readObject();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    /**
+     * Used retrive the encryption keys retrieval and divides keys into parts
+     *
+     *
+     */
+    public void getKeyInformation(String newValue) {
+        try {
+            keyList.clear();
+            MessageSendGet messageSendGet = new MessageSendGet();
+            System.out.println(newValue);
+            messageSendGet.sendMessage(outputStream, newValue);
+
+            String requestOutputFromServer = messageSendGet.getMessage(inputStream);
+
+
+            //***Trial**///
+            keyList.add(requestOutputFromServer);
+            //***Trial**///
+            System.out.println(keyList);
+
+            System.out.println("EchoClient> " + requestOutputFromServer);
         }
         catch (Exception e) {
             e.printStackTrace();

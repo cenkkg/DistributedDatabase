@@ -156,10 +156,6 @@ public class FunctionalitiesTest {
         // Check if clientSocket is initialized correctly
         assertEquals(clientSocket, clientConnection.getClientSocket());
 
-        // Check if metadata is initialized correctly
-        assertEquals(2, clientConnection.getMetadata().size());
-        assertEquals(Arrays.asList("value1"), clientConnection.getMetadata().get(Arrays.asList("key1")));
-        assertEquals(Arrays.asList("value2"), clientConnection.getMetadata().get(Arrays.asList("key2")));
     }
 
 

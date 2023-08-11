@@ -1,4 +1,3 @@
-/Users/cenkgurbet/Desktop/TUM/SS2023/Cloud_Databases/ms4/CLIENT/src/main/java/client/ServerCommunication.java
-/Users/cenkgurbet/Desktop/TUM/SS2023/Cloud_Databases/ms4/CLIENT/src/main/java/macros/MacroDefinitions.java
-/Users/cenkgurbet/Desktop/TUM/SS2023/Cloud_Databases/ms4/CLIENT/src/main/java/client/ClientSocket.java
-/Users/cenkgurbet/Desktop/TUM/SS2023/Cloud_Databases/ms4/CLIENT/src/main/java/client/MessageSendGet.java
+/Users/selenuygun/Desktop/DistributedDatabase/CLIENT/src/main/java/client/MessageSendGet.java
+/Users/selenuygun/Desktop/DistributedDatabase/CLIENT/src/main/java/client/ServerCommunication.java
+/Users/selenuygun/Desktop/DistributedDatabase/CLIENT/src/main/java/client/ClientSocket.java

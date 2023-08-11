@@ -1,12 +1,15 @@
 package macros;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.logging.Level;
 
-@Getter
+@NoArgsConstructor
 @Setter
+@Getter
 public class MacroDefinitions {
     public int serverPort = 8888;
 
@@ -17,4 +20,6 @@ public class MacroDefinitions {
     public String listenAddress;
 
     public String coordiantorServer;
+
+
 }
