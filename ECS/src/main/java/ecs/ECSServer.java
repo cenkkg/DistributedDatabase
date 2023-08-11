@@ -24,6 +24,7 @@ public class ECSServer {
         @Override
         public void run() {
             while(true) {
+                //System.out.println("selen");
                 for (Map.Entry<List<String>, List<String>> entry: metadata.entrySet()) {
                     String address = entry.getKey().get(0);
                     int port = Integer.parseInt(entry.getKey().get(1));
@@ -76,9 +77,11 @@ public class ECSServer {
                     case "-a":
                         macroDefinitions.setListenAddress(value);
                         continue;
+                    /*
                     case "-c":
                         macroDefinitions.setCoordiantorServer(value);
                         continue;
+                    */
                 }
             }
 

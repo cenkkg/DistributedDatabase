@@ -7,8 +7,10 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
+import java.util.Arrays;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -30,20 +32,14 @@ public class Bootstrapper {
     MacroDefinitions macroDefinitions;
 
 
-    public static String generateEncryptionKey(String hostSource, String portSource, String hostTarget, String portTarget) throws NoSuchAlgorithmException {
-        // concatenate
-        String concatenatedInfo = hostSource + portSource + hostTarget + portTarget ;
 
-        // Create a master key using SHA-256 hash function
+    public static String generateKey(String targetIP, String targetPort, String thirdKey) throws NoSuchAlgorithmException {
+        String concatenatedInfo = targetIP + targetPort + thirdKey;
+
         MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
-        byte[] masterKeyBytes = sha256.digest(concatenatedInfo.getBytes());
-
-        // Use the first 128 bits (16 bytes) as the AES key
-        byte[] aesKeyBytes = new byte[16];
-        System.arraycopy(masterKeyBytes, 0, aesKeyBytes, 0, 16);
-
-        // Convert the AES key bytes to a string
-        return bytesToHexString(aesKeyBytes);
+        byte[] keyBytes = sha256.digest(concatenatedInfo.getBytes());
+        String key = bytesToHexString(keyBytes);
+        return key;
     }
 
     private static String bytesToHexString(byte[] bytes) {
@@ -54,26 +50,6 @@ public class Bootstrapper {
         return result.toString();
     }
 
-
-    public static String generateDecryptionKey(String hostSource, String portSource, String hostTarget, String portTarget) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeySpecException {
-        // Concatenate the input parameters in reverse order
-        String concatenatedInfo = portTarget + hostTarget + portSource + hostSource;
-
-        // Create the PBKDF2 key
-        char[] passwordChars = concatenatedInfo.toCharArray();
-        byte[] salt = new byte[16]; // Use a random salt for more security
-        int iterations = 10000; // Number of iterations (should be same as in encryption key generation)
-        int keyLength = 128; // Key length in bits (AES-128)
-
-        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-        KeySpec spec = new PBEKeySpec(passwordChars, salt, iterations, keyLength);
-        SecretKey secretKey = factory.generateSecret(spec);
-        byte[] aesKeyBytes = secretKey.getEncoded();
-
-        // Convert the AES key bytes to a string
-        System.out.println(bytesToHexString(aesKeyBytes));
-        return bytesToHexString(aesKeyBytes);
-    }
 
 
     public static void main(String[] args) {
@@ -100,40 +76,32 @@ public class Bootstrapper {
             ServerSocket bootstrapSocket = new ServerSocket(macroDefinitions.getServerPort());
             while (true) {
                 // Get the input stream from the source socket and create the encrypted data
+
                 Socket clientSocket = bootstrapSocket.accept();
-                InputStream inputStream = clientSocket .getInputStream();
-                OutputStream outputStream = clientSocket .getOutputStream();
+                InputStream inputStream = clientSocket.getInputStream();
+                OutputStream outputStream = clientSocket.getOutputStream();
                 String message = messageSendGet.getMessage(inputStream);
 
                 // Split the input data by spaces
                 String[] parts = message.split(" ");
-                System.out.println(parts);
 
                 // check if the message received correctly for encryption
-                if (parts.length == 5) {
-                    String sourceIP = parts[0];
-                    String sourcePort = parts[1];
-                    String targetIP = parts[2];
-                    String targetPort = parts[3];
-                    String type = parts[4];
-                    System.out.println(sourceIP);
-                    System.out.println(sourcePort);
-                    System.out.println(targetIP);
-                    System.out.println(targetPort);
-                    System.out.println(type);
+                if (parts.length == 4) {
+                    String targetIP = parts[0];
+                    String targetPort = parts[1];
+                    String thirdKey = parts[2];
+                    String type = parts[3];
 
                     // create the encryption keys and send to source
-                    if (type == "ENC") {
-                        String encryptionKey = generateEncryptionKey(sourceIP,sourcePort,targetIP,targetPort);
-                        System.out.println(encryptionKey);
-                        messageSendGet.sendMessage(outputStream,encryptionKey);
+                    if (type.equals("ENC")) {
+                        String encryptionKey =  generateKey(targetIP,targetPort,thirdKey);
+                        messageSendGet.sendMessage(outputStream, encryptionKey);
                         clientSocket.close();
                     }
                     // create the decryption keys and send to source
                     else{
-
-                        String decryptionKey = generateDecryptionKey(sourceIP,sourcePort,targetIP,targetPort);
-                        messageSendGet.sendMessage(outputStream,decryptionKey);
+                        String decryptionKey = generateKey(targetIP,targetPort,thirdKey);
+                        messageSendGet.sendMessage(outputStream, decryptionKey);
                         clientSocket.close();
                     }
                 }

@@ -121,20 +121,21 @@ public class Server {
                         macroDefinitions.setBootstrapServerPort(Integer.parseInt(value.split(":")[1]));
                         continue;
                     case "-bs":
-                        macroDefinitions.setBootstrapperServerIP(value.split(":")[0]);
-                        macroDefinitions.setBootstrapperServerPort(String.valueOf(Integer.parseInt(value.split(":")[1])));
-
+                        macroDefinitions.setEncryptionServer(value.split(":")[0]);
+                        macroDefinitions.setEncryptionServerPort(Integer.parseInt(value.split(":")[1]));
+                        continue;
                     case "-h":
                         continue;
                 }
             }
+            // ***************************************************************************************************
+            // Connecting to Bootstrapper to get decyrption key
 
-            //****************************************************************************************************
-            // MS5 Bootstrapper connection for server side
 
             // ****************************************************************************************************
             // MS3
             // Connecting to ECS to get metadata
+
             try (Socket socketForECS = new Socket(macroDefinitions.getBootstrapServerIP(), macroDefinitions.getBootstrapServerPort());
                  OutputStream outputStreamForECS = socketForECS.getOutputStream();
                  InputStream inputStreamForECS = socketForECS.getInputStream()) {

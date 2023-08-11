@@ -1,14 +1,11 @@
 package client;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
+import javax.crypto.*;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -27,8 +24,8 @@ public class ServerCommunication {
     // Metadata
     Map<List<String>, List<String>> metadataStore = new HashMap<>();
 
-    // Encrypted Request
-    List<String> requestList = new ArrayList<>();
+    // keys and corresponding iv values
+    List<String> keyList = new ArrayList<>();
 
     public void setOutputStream(OutputStream outputStream) {
         this.outputStream = outputStream;
@@ -52,29 +49,6 @@ public class ServerCommunication {
     }
 
 
-    String encryptData(String data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException, NoSuchAlgorithmException {
-        String encryptionKey = requestList.get(0); // Replace with your own key
-        requestList.clear();
-
-        // Convert the encryption key to bytes and create a SecretKeySpec
-        byte[] keyBytes = encryptionKey.getBytes(StandardCharsets.UTF_8);
-        SecretKeySpec secretKey = new SecretKeySpec(keyBytes, "AES");
-
-        // Initialize the cipher with AES algorithm and mode
-        Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-        cipher.init(Cipher.ENCRYPT_MODE, secretKey);
-
-        // Encrypt the data
-        byte[] encryptedBytes = cipher.doFinal(data.getBytes());
-
-        // Convert the encrypted bytes to a Base64-encoded string for safe transmission/storage
-        String encryptedData = Base64.getEncoder().encodeToString(encryptedBytes);
-
-        System.out.println("Original data: " + data);
-        System.out.println("Encryption key: " + encryptionKey);
-        System.out.println("Encrypted data: " + encryptedData);
-        return  encryptedData;
-    }
 
 
     /**
@@ -233,6 +207,26 @@ public class ServerCommunication {
             System.out.print("Unknown command \n");
             getHelp();
         }
+    }
+
+
+    public static byte[] aesEncrypt(String message, String sharedKey) throws Exception {
+        // Convert sharedKey string to bytes using UTF-8 encoding
+        byte[] sharedKeyBytes = sharedKey.getBytes(StandardCharsets.UTF_8);
+
+        // You should use a proper key derivation function (KDF) here to generate a valid AES key
+        // For demonstration purposes, we'll use the first 16 bytes of the sharedKeyBytes
+        byte[] aesKeyBytes = new byte[16];
+        System.arraycopy(sharedKeyBytes, 0, aesKeyBytes, 0, Math.min(sharedKeyBytes.length, 16));
+
+
+        SecretKey key = new SecretKeySpec(aesKeyBytes, "AES");
+
+
+        Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+
+        cipher.init(Cipher.ENCRYPT_MODE, key);
+        return cipher.doFinal(message.getBytes(StandardCharsets.UTF_8));
     }
 
 
@@ -482,6 +476,25 @@ public class ServerCommunication {
         }
     }
 
+
+    public static String byteArrayToHexString(byte[] bytes) {
+        StringBuilder result = new StringBuilder();
+        for (byte b : bytes) {
+            result.append(String.format("%02X", b));
+        }
+        return result.toString();
+    }
+
+    public static byte[] hexStringToBytes(String hexString) {
+        int len = hexString.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(hexString.charAt(i), 16) << 4)
+                    + Character.digit(hexString.charAt(i + 1), 16));
+        }
+        return data;
+    }
+
     /**
      * Get keyrange from storage/server
      *
@@ -518,15 +531,27 @@ public class ServerCommunication {
         }
     }
 
-    public void connectEncryptionServer(String newValue) {
+
+
+    /**
+     * Used retrive the encryption keys retrieval and divides keys into parts
+     *
+     *
+     */
+    public void getKeyInformation(String newValue) {
         try {
+            keyList.clear();
             MessageSendGet messageSendGet = new MessageSendGet();
             System.out.println(newValue);
             messageSendGet.sendMessage(outputStream, newValue);
 
             String requestOutputFromServer = messageSendGet.getMessage(inputStream);
-            requestList.add(requestOutputFromServer);
-            System.out.println(requestList);
+
+
+            //***Trial**///
+            keyList.add(requestOutputFromServer);
+            //***Trial**///
+            System.out.println(keyList);
 
             System.out.println("EchoClient> " + requestOutputFromServer);
         }

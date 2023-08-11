@@ -1,7 +1,16 @@
 package macros;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.util.logging.Level;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class MacroDefinitions {
     public int serverPort = 46795;
     public int cacheSize = 50;
@@ -17,243 +26,11 @@ public class MacroDefinitions {
 
     public int bootstrapServerPort = 8888;
 
-    public String bootstrapperServerIP = "127.0.0.1";
-
-    public int bootstrapperPort = 38887;
-
     public String listenAddress = "127.0.0.1";
 
+    public int encryptionServerPort = 8878;
 
-    // Getter and Setter ------------------------------------------------------------------------------
-
-    /**
-     * get Server Port
-     *
-     * @param
-     * @return serverPort
-     */
-    public int getServerPort() {
-        return serverPort;
-    }
-
-    /**
-     * get Cache Size
-     *
-     * @param
-     * @return getCacheSize
-     */
-    public int getCacheSize() {
-        return cacheSize;
-    }
-
-    /**
-     * get Cache Policy
-     *
-     * @param
-     * @return getCachePolicy
-     */
-    public String getCachePolicy() {
-        return cachePolicy;
-    }
-
-    /**
-     * set Server Port
-     *
-     * @param serverPort
-     * @return
-     */
-    public void setServerPort(int serverPort) {
-        this.serverPort = serverPort;
-    }
-
-    /**
-     * set Cache Size
-     *
-     * @param cacheSize
-     * @return
-     */
-    public void setCacheSize(int cacheSize) {
-        this.cacheSize = cacheSize;
-    }
-
-    /**
-     * set Cache Policy
-     *
-     * @param cachePolicy
-     * @return
-     */
-    public void setCachePolicy(String cachePolicy) {
-        this.cachePolicy = cachePolicy;
-    }
-
-    /**
-     * set Memory File Path
-     *
-     * @param memoryFilePath
-     * @return
-     */
-    public void setMemoryFilePath(String memoryFilePath) {
-        this.memoryFilePath = memoryFilePath;
-    }
+    public String encryptionServer = "";
 
 
-    /**
-     * get Memory File Path
-     *
-     * @param
-     * @return memoryFilePath
-     */
-    public String getMemoryFilePath() {
-        return memoryFilePath;
-    }
-
-
-    /**
-     * get Log File Disrectory
-     *
-     * @param
-     * @return logDirectory
-     */
-    public String getLogDirectory() {
-        return logDirectory;
-    }
-
-
-    /**
-     * get Log Level
-     *
-     * @param
-     * @return loglevel
-     */
-    public Level getLoglevel() {
-        return loglevel;
-    }
-
-
-    /**
-     * set Log Directory
-     *
-     * @param logDirectory
-     * @return
-     */
-    public void setLogDirectory(String logDirectory) {
-        this.logDirectory = logDirectory;
-    }
-
-    /**
-     * set Log Level
-     *
-     * @param loglevel
-     * @return
-     */
-    public void setLoglevel(Level loglevel) {
-        this.loglevel = loglevel;
-    }
-
-    /**
-     * get Bootstrap Server Port
-     *
-     * @param
-     * @return bootstrapServerPort
-     */
-    public int getBootstrapServerPort() {
-        return bootstrapServerPort;
-    }
-
-    /**
-     * set Bootstrap Server Port
-     *
-     * @param bootstrapServerPort
-     * @return
-     */
-    public void setBootstrapServerPort(int bootstrapServerPort) {
-        this.bootstrapServerPort = bootstrapServerPort;
-    }
-
-    /**
-     * get Listen Address
-     *
-     * @param
-     * @return listenAddress
-     */
-    public String getListenAddress() {
-        return listenAddress;
-    }
-
-    /**
-     * set Listen Address
-     *
-     * @param listenAddress
-     * @return
-     */
-    public void setListenAddress(String listenAddress) {
-        this.listenAddress = listenAddress;
-    }
-
-    /**
-     * get ootstrapServerIP
-     *
-     * @param
-     * @return
-     */
-    public String getBootstrapServerIP() {
-        return bootstrapServerIP;
-    }
-
-    /**
-     * set ootstrapServerIP
-     *
-     * @param bootstrapServerIP
-     * @return
-     */
-    public void setBootstrapServerIP(String bootstrapServerIP) {
-        this.bootstrapServerIP = bootstrapServerIP;
-    }
-
-
-    /**
-     * get ootstrapServerIP
-     *
-     * @param
-     * @return
-     */
-    public String getBootstrapperServerIP() {
-        return bootstrapperServerIP;
-    }
-
-    /**
-     * set ootstrapServerIP
-     *
-     * @param bootstrapServerIP
-     * @return
-     */
-    public void setBootstrapperServerIP(String bootstrapServerIP) {
-        this.bootstrapServerIP = bootstrapServerIP;
-    }
-
-    public void setBootstrapperServerPort(String bootstrapperServerPort){
-        this.bootstrapServerPort = bootstrapServerPort;
-    }
-
-
-
-    /**
-     * get Bootstrap Server Port
-     *
-     * @param
-     * @return bootstrapServerPort
-     */
-    public int getBootstrapperPort() {
-        return bootstrapperPort;
-    }
-
-    /**
-     * set Bootstrap Server Port
-     *
-     * @param bootstrapperServerPort
-     * @return
-     */
-    public void setBootstrapperPort(int bootstrapperServerPort) {
-        this.bootstrapperPort = bootstrapperServerPort;
-    }
 }

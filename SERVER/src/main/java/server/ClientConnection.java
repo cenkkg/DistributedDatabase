@@ -10,6 +10,7 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -21,6 +22,11 @@ import helperMethods.Helper;
 import lombok.Getter;
 import lombok.Setter;
 import macros.MacroDefinitions;
+
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 
 @Getter
 @Setter
@@ -74,6 +80,52 @@ public class ClientConnection extends Thread{
             }
         }
         cache[macroDefinitions.getCacheSize() - 1] = null;
+    }
+
+
+    public static byte[] hexStringToBytes(String hexString) {
+        int len = hexString.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(hexString.charAt(i), 16) << 4)
+                    + Character.digit(hexString.charAt(i + 1), 16));
+        }
+        return data;
+    }
+
+
+    /**
+     * decrypt the incoming request from client
+     *
+     * @param encryptedHexString, SecretKey sharedKey
+     * @return
+     */
+    public static String aesDecrypt(String targetIP, String targetPort, String encryptedHexString) {
+        int IP0 = Integer.parseInt(targetIP.split("\\.")[0]) % 100000;
+        int IP1 = Integer.parseInt(targetIP.split("\\.")[1]) % 100000;
+        int IP2 = Integer.parseInt(targetIP.split("\\.")[2]) % 100000;
+        int IP3 = Integer.parseInt(targetIP.split("\\.")[3]) % 100000;
+        int port = Integer.parseInt(targetPort) % 100000;
+        int result = (IP0 + IP1 + IP2 + IP3 + port) % 100000;
+        result = 100000 - result;
+
+        try (Socket socketForBootstrapper = new Socket("127.0.0.1", 50000);
+             OutputStream outputStreamForBootstrapper = socketForBootstrapper.getOutputStream();
+             InputStream inputStreamForBootstrapper = socketForBootstrapper.getInputStream()){
+            MessageSendGet messageSendGet = new MessageSendGet();
+            messageSendGet.sendMessage(outputStreamForBootstrapper,  targetIP + " " + targetPort + " " + result + " ENC");
+            String encryptionKey = messageSendGet.getMessage(inputStreamForBootstrapper);
+
+            System.out.println(encryptionKey);
+
+            byte[] encryptedBytes = hexStringToBytes(encryptedHexString);
+            SecretKey key = new SecretKeySpec(encryptionKey.getBytes(), "AES");
+            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            cipher.init(Cipher.DECRYPT_MODE, key);
+            byte[] decryptedBytes = cipher.doFinal(encryptedBytes);
+
+            return new String(decryptedBytes);
+        } catch (Exception e) {throw new RuntimeException(e);}
     }
 
 
@@ -216,7 +268,9 @@ public class ClientConnection extends Thread{
      * @return
      */
     public synchronized String getData(String key) {
+        System.out.println("server get data output"+ key);
         try{
+            System.out.println(key);
             for(int eachIndex = 0; eachIndex < macroDefinitions.getCacheSize(); eachIndex++){
                 if(cache[eachIndex] == null){
                     return ("get_error " + key);
@@ -739,6 +793,11 @@ public class ClientConnection extends Thread{
                             }
                             continue;
                         case "get":
+                            System.out.println("TEST1");
+                            System.out.println(aesDecrypt(macroDefinitions.getListenAddress(), Integer.toString(macroDefinitions.getServerPort()), getMessage.split(" ")[1]));
+                            messageSendGet.sendMessage(outputStream, "TEST");
+                            continue;
+                            /*
                             if(!getData(getMessage.split(" ")[1]).split(" ")[0].equals("get_error")){
                                 messageSendGet.sendMessage(outputStream, getData(getMessage.split(" ")[1]));
                             }
@@ -755,6 +814,7 @@ public class ClientConnection extends Thread{
                                 messageSendGet.sendMessage(outputStream, "server_not_responsible");
                             }
                             continue;
+                            */
                         case "delete_replication":
                             deleteData(getMessage.split(" ")[1]);
                             continue;
