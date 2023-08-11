@@ -326,7 +326,7 @@ public class ServerConnection extends Thread {
                                 String totalMetadataToFile2 = totalMetadataToFile.substring(0, totalMetadataToFile.length() - 1);
                                 bufferedWriter.write(totalMetadataToFile2);
                             } catch (Exception e){}
-                                continue;
+                            continue;
                         default:
                             messageSendGet.sendMessage(outputStream, "error unknown command!");
                     }

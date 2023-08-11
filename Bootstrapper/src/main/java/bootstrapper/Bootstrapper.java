@@ -35,7 +35,6 @@ public class Bootstrapper {
 
     public static String generateKey(String targetIP, String targetPort, String thirdKey) throws NoSuchAlgorithmException {
         String concatenatedInfo = targetIP + targetPort + thirdKey;
-
         MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
         byte[] keyBytes = sha256.digest(concatenatedInfo.getBytes());
         String key = bytesToHexString(keyBytes);
@@ -90,20 +89,12 @@ public class Bootstrapper {
                     String targetIP = parts[0];
                     String targetPort = parts[1];
                     String thirdKey = parts[2];
-                    String type = parts[3];
 
                     // create the encryption keys and send to source
-                    if (type.equals("ENC")) {
-                        String encryptionKey =  generateKey(targetIP,targetPort,thirdKey);
-                        messageSendGet.sendMessage(outputStream, encryptionKey);
-                        clientSocket.close();
-                    }
-                    // create the decryption keys and send to source
-                    else{
-                        String decryptionKey = generateKey(targetIP,targetPort,thirdKey);
-                        messageSendGet.sendMessage(outputStream, decryptionKey);
-                        clientSocket.close();
-                    }
+                    String encryptionKey =  generateKey(targetIP,targetPort,thirdKey);
+                    messageSendGet.sendMessage(outputStream, encryptionKey);
+                    clientSocket.close();
+
                 }
                 else {
                     System.out.println("Invalid client information received.");
