@@ -19,4 +19,6 @@ public class MacroDefinitions {
     public String coordiantorServer;
 
     public String ecsFilePath;
+
+    public String ecsServersFilePath;
 }

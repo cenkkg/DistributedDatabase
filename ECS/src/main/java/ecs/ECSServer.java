@@ -78,11 +78,33 @@ public class ECSServer {
                     case "-ecsFilePath":
                         macroDefinitions.setEcsFilePath(value);
                         continue;
+                    case "-availableServers":
+                        macroDefinitions.setEcsServersFilePath(value);
+                        continue;
                 }
             }
 
             // ****************************************************************************************************
             // START HOOK
+            try {
+                BufferedReader reader = new BufferedReader(new FileReader(macroDefinitions.getEcsServersFilePath()));
+                String line = reader.readLine();
+                boolean createOrNot = false;
+                while (line != null) {
+                    if(line.split(":")[0].equals(macroDefinitions.getListenAddress()) && line.split(":")[1].equals(Integer.toString(macroDefinitions.getServerPort()))){
+                        createOrNot = true;
+                    }
+                    line = reader.readLine();
+                }
+                reader.close();
+                if(!createOrNot) {
+                    return;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+
             File newECSServersFile = new File(macroDefinitions.getEcsFilePath() + "/" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + "_ecsServers" + ".txt");
             File newMetadataFile   = new File(macroDefinitions.getEcsFilePath() + "/" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + "_metadataFile" + ".txt");
             newECSServersFile.createNewFile();
