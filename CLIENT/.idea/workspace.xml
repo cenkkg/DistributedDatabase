@@ -6,9 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="8c4dc78a-76c9-48ce-b82f-e95112169c8c" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../ECS/src/main/java/ecs/127.0.0.1_3000_ecsServers.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../ECS/src/main/java/ecs/127.0.0.1_3000_metadataFile.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../SERVER/src/main/testData1/data.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ECS/src/main/java/ecs/ECSServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/../ECS/src/main/java/ecs/ECSServer.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

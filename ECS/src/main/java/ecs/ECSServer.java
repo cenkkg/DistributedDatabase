@@ -87,19 +87,27 @@ public class ECSServer {
             // ****************************************************************************************************
             // START HOOK
             try {
+                String newConfig = "";
+                boolean createOrNot = false;
                 BufferedReader reader = new BufferedReader(new FileReader(macroDefinitions.getEcsServersFilePath()));
                 String line = reader.readLine();
-                boolean createOrNot = false;
                 while (line != null) {
-                    if(line.split(":")[0].equals(macroDefinitions.getListenAddress()) && line.split(":")[1].equals(Integer.toString(macroDefinitions.getServerPort()))){
-                        createOrNot = true;
+                    for(int eachECSConfig = 0; eachECSConfig < line.split(" ").length; eachECSConfig++){
+                        if(line.split(" ")[eachECSConfig].split(":")[0].equals(macroDefinitions.getListenAddress()) && line.split(" ")[eachECSConfig].split(":")[1].equals(Integer.toString(macroDefinitions.getServerPort()))){
+                            createOrNot = true;
+                            newConfig += line.split(" ")[eachECSConfig] + " ";
+                        }
                     }
-                    line = reader.readLine();
                 }
                 reader.close();
                 if(!createOrNot) {
                     return;
                 }
+
+                FileWriter writerObj = new FileWriter(macroDefinitions.getEcsServersFilePath(), false);
+                writerObj.write(newConfig);
+                writerObj.close();
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
