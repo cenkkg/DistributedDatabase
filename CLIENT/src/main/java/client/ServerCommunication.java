@@ -458,14 +458,6 @@ public class ServerCommunication {
         }
     }
 
-    public static String byteArrayToHexString(byte[] bytes) {
-        StringBuilder result = new StringBuilder();
-        for (byte b : bytes) {
-            result.append(String.format("%02X", b));
-        }
-        return result.toString();
-    }
-
     /**
      * Get keyrange from storage/server
      *
