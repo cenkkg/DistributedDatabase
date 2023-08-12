@@ -170,14 +170,14 @@ public class ServerCommunication {
      * @param sharedKey String to use as key for encryption
      *
      */
-    public static byte[] aesEncrypt(String message, String sharedKey) throws Exception {
-        byte[] sharedKeyBytes = sharedKey.getBytes(StandardCharsets.UTF_8);
-        byte[] aesKeyBytes = new byte[16];
-        System.arraycopy(sharedKeyBytes, 0, aesKeyBytes, 0, Math.min(sharedKeyBytes.length, 16));
-        SecretKey key = new SecretKeySpec(aesKeyBytes, "AES");
-        Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-        cipher.init(Cipher.ENCRYPT_MODE, key);
-        return cipher.doFinal(message.getBytes(StandardCharsets.UTF_8));
+    public static String encryption(String message, String sharedKey) {
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < message.length(); i++) {
+            char character = message.charAt(i);
+            char keyChar = sharedKey.charAt(i % sharedKey.length());
+            result.append((char) (character ^ keyChar));
+        }
+        return result.toString();
     }
 
 
@@ -218,7 +218,12 @@ public class ServerCommunication {
     public void putData(String key, String value) {
         try{
             MessageSendGet messageSendGet = new MessageSendGet();
-            messageSendGet.sendMessage(outputStream, "put " + key + " " + value);
+
+            String encrytionKey = getKeyFromBootstrapper(DNS, Integer.toString(port));
+            String encryptedKeyValue = encryption(key, encrytionKey);
+            String encryptedValueValue = encryption(value, encrytionKey);
+
+            messageSendGet.sendMessage(outputStream, "put " + encryptedKeyValue + " " + encryptedValueValue);
             String responseOfPut = messageSendGet.getMessage(inputStream);
 
             String retryResponse = "";
@@ -265,7 +270,7 @@ public class ServerCommunication {
                 }
                 disconnectServer();
                 createSocket(targetServer.get(0), Integer.parseInt(targetServer.get(1)));
-                messageSendGet.sendMessage(outputStream, "put " + key + " " + value);
+                messageSendGet.sendMessage(outputStream, "put " + encryptedKeyValue + " " + encryptedValueValue);
                 retryResponse = messageSendGet.getMessage(inputStream);
             }
             else if (responseOfPut.equals("server_write_lock")) {
@@ -276,7 +281,10 @@ public class ServerCommunication {
                 putData(key,value);
             }
             else{retryResponse = responseOfPut;}
-            System.out.println("EchoClient> " + retryResponse);
+
+            System.out.println(retryResponse);
+            String decryptedKeyValue = encryption(retryResponse, encrytionKey);
+            System.out.println("EchoClient> " + decryptedKeyValue);
         } catch (Exception e){
             System.out.println("EchoClient> " + e.getMessage());
         }
@@ -291,7 +299,11 @@ public class ServerCommunication {
     public void getData(String key) {
         try{
             MessageSendGet messageSendGet = new MessageSendGet();
-            messageSendGet.sendMessage(outputStream, "get " + key);
+
+            String encrytionKey = getKeyFromBootstrapper(DNS, Integer.toString(port));
+            String encryptedKeyValue = encryption(key, encrytionKey);
+
+            messageSendGet.sendMessage(outputStream, "get " + encryptedKeyValue);
             String responseOfPut = messageSendGet.getMessage(inputStream);
             String retryResponse = "";
             if(responseOfPut.equals("server_stopped")){
@@ -337,7 +349,7 @@ public class ServerCommunication {
                 }
                 disconnectServer();
                 createSocket(targetServer.get(0), Integer.parseInt(targetServer.get(1)));
-                messageSendGet.sendMessage(outputStream, "get " + key);
+                messageSendGet.sendMessage(outputStream, "get " + encryptedKeyValue);
                 retryResponse = messageSendGet.getMessage(inputStream);
             }
             else if (responseOfPut.equals("server_write_lock")) {
@@ -348,7 +360,9 @@ public class ServerCommunication {
                 getData(key);
             }
             else{retryResponse = responseOfPut;}
-            System.out.println("EchoClient> " + retryResponse);
+
+            String decryptedKeyValue = encryption(retryResponse, encrytionKey);
+            System.out.println("EchoClient> " + decryptedKeyValue);
         } catch (Exception e){
             System.out.println("EchoClient> " + e.getMessage());
         }
@@ -363,7 +377,11 @@ public class ServerCommunication {
     public void deleteData(String key) {
         try{
             MessageSendGet messageSendGet = new MessageSendGet();
-            messageSendGet.sendMessage(outputStream, "delete " + key);
+
+            String encrytionKey = getKeyFromBootstrapper(DNS, Integer.toString(port));
+            String encryptedKeyValue = encryption(key, encrytionKey);
+
+            messageSendGet.sendMessage(outputStream, "delete " + encryptedKeyValue);
             String responseOfPut = messageSendGet.getMessage(inputStream);
 
             String retryResponse = "";
@@ -410,7 +428,7 @@ public class ServerCommunication {
                 }
                 disconnectServer();
                 createSocket(targetServer.get(0), Integer.parseInt(targetServer.get(1)));
-                messageSendGet.sendMessage(outputStream, "delete " + key);
+                messageSendGet.sendMessage(outputStream, "delete " + encryptedKeyValue);
                 retryResponse = messageSendGet.getMessage(inputStream);
             }
             else if (responseOfPut.equals("server_write_lock")) {
@@ -421,7 +439,9 @@ public class ServerCommunication {
                 deleteData(key);
             }
             else{retryResponse = responseOfPut;}
-            System.out.println("EchoClient> " + retryResponse);
+
+            String decryptedKeyValue = encryption(retryResponse, encrytionKey);
+            System.out.println("EchoClient> " + decryptedKeyValue);
         } catch (Exception e){
             System.out.println("EchoClient> " + e.getMessage());
         }
@@ -496,5 +516,23 @@ public class ServerCommunication {
         catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static String getKeyFromBootstrapper(String targetIP, String targetPort){
+        int IP0 = Integer.parseInt(targetIP.split("\\.")[0]) % 100000;
+        int IP1 = Integer.parseInt(targetIP.split("\\.")[1]) % 100000;
+        int IP2 = Integer.parseInt(targetIP.split("\\.")[2]) % 100000;
+        int IP3 = Integer.parseInt(targetIP.split("\\.")[3]) % 100000;
+        int port = Integer.parseInt(targetPort) % 100000;
+        int result = (IP0 + IP1 + IP2 + IP3 + port) % 100000;
+        result = 100000 - result;
+
+        try (Socket socketForBootstrapper = new Socket("127.0.0.1", 50000);
+             OutputStream outputStreamForBootstrapper = socketForBootstrapper.getOutputStream();
+             InputStream inputStreamForBootstrapper = socketForBootstrapper.getInputStream()){
+            MessageSendGet messageSendGet = new MessageSendGet();
+            messageSendGet.sendMessage(outputStreamForBootstrapper,  targetIP + " " + targetPort + " " + result + " ENC");
+            return messageSendGet.getMessage(inputStreamForBootstrapper);
+        } catch (Exception e) {throw new RuntimeException(e);}
     }
 }

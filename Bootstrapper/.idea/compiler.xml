@@ -10,5 +10,8 @@
         <module name="Bootstrapper" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="Bootstrapper" target="17" />
+    </bytecodeTargetLevel>
   </component>
 </project>

@@ -132,7 +132,6 @@ public class Server {
             // ****************************************************************************************************
             // MS3
             // Connecting to ECS to get metadata
-
             try (Socket socketForECS = new Socket(macroDefinitions.getBootstrapServerIP(), macroDefinitions.getBootstrapServerPort());
                  OutputStream outputStreamForECS = socketForECS.getOutputStream();
                  InputStream inputStreamForECS = socketForECS.getInputStream()) {

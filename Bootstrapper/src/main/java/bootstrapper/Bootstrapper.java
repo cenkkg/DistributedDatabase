@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -33,23 +34,11 @@ public class Bootstrapper {
 
 
 
-    public static String generateKey(String targetIP, String targetPort, String thirdKey) throws NoSuchAlgorithmException {
-        String concatenatedInfo = targetIP + targetPort + thirdKey;
-        MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
-        byte[] keyBytes = sha256.digest(concatenatedInfo.getBytes());
-        String key = bytesToHexString(keyBytes);
-        return key;
+    public static byte[] generateKey(String targetIP, String targetPort, String thirdKey) throws NoSuchAlgorithmException {
+        String combined = targetIP + targetPort + thirdKey;
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        return digest.digest(combined.getBytes());
     }
-
-    private static String bytesToHexString(byte[] bytes) {
-        StringBuilder result = new StringBuilder();
-        for (byte b : bytes) {
-            result.append(String.format("%02X", b));
-        }
-        return result.toString();
-    }
-
-
 
     public static void main(String[] args) {
 
@@ -91,10 +80,9 @@ public class Bootstrapper {
                     String thirdKey = parts[2];
 
                     // create the encryption keys and send to source
-                    String encryptionKey =  generateKey(targetIP,targetPort,thirdKey);
+                    String encryptionKey =  new String(generateKey(targetIP,targetPort,thirdKey), StandardCharsets.UTF_8);
                     messageSendGet.sendMessage(outputStream, encryptionKey);
                     clientSocket.close();
-
                 }
                 else {
                     System.out.println("Invalid client information received.");

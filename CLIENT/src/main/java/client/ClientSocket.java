@@ -9,24 +9,6 @@ import lombok.Setter;
 @Setter
 public class ClientSocket {
 
-    public static String getKeyFromBootstrapper(String targetIP, String targetPort){
-        int IP0 = Integer.parseInt(targetIP.split("\\.")[0]) % 100000;
-        int IP1 = Integer.parseInt(targetIP.split("\\.")[1]) % 100000;
-        int IP2 = Integer.parseInt(targetIP.split("\\.")[2]) % 100000;
-        int IP3 = Integer.parseInt(targetIP.split("\\.")[3]) % 100000;
-        int port = Integer.parseInt(targetPort) % 100000;
-        int result = (IP0 + IP1 + IP2 + IP3 + port) % 100000;
-        result = 100000 - result;
-
-        try (Socket socketForBootstrapper = new Socket("127.0.0.1", 50000);
-             OutputStream outputStreamForBootstrapper = socketForBootstrapper.getOutputStream();
-             InputStream inputStreamForBootstrapper = socketForBootstrapper.getInputStream()){
-            MessageSendGet messageSendGet = new MessageSendGet();
-            messageSendGet.sendMessage(outputStreamForBootstrapper,  targetIP + " " + targetPort + " " + result + " ENC");
-            return messageSendGet.getMessage(inputStreamForBootstrapper);
-        } catch (Exception e) {throw new RuntimeException(e);}
-    }
-
     public static void main(String[] args) throws Exception {
 
         ServerCommunication serverCommunication = new ServerCommunication();
@@ -90,11 +72,7 @@ public class ClientSocket {
                                 newValue = newValue + tokens[i] + " ";
                             }
                         }
-
-                        String encrytionKey = getKeyFromBootstrapper(serverCommunication.DNS, Integer.toString(serverCommunication.port));
-                        byte[] response1 = ServerCommunication.aesEncrypt(tokens[1], encrytionKey);
-                        byte[] response2 = ServerCommunication.aesEncrypt(newValue, encrytionKey);
-                        serverCommunication.putData(ServerCommunication.byteArrayToHexString(response1), ServerCommunication.byteArrayToHexString(response2));
+                        serverCommunication.putData(tokens[1], newValue);
                     }
                     continue;
                 case "get":
@@ -107,9 +85,7 @@ public class ClientSocket {
                         serverCommunication.getHelp();
                     }
                     else {
-                        String encrytionKey = getKeyFromBootstrapper(serverCommunication.DNS, Integer.toString(serverCommunication.port));
-                        byte[] response = ServerCommunication.aesEncrypt(tokens[1], encrytionKey);
-                        serverCommunication.getData(ServerCommunication.byteArrayToHexString(response));
+                        serverCommunication.getData(tokens[1]);
                     }
                     continue;
                 case "delete":
@@ -122,9 +98,7 @@ public class ClientSocket {
                         serverCommunication.getHelp();
                     }
                     else {
-                        String encrytionKey = getKeyFromBootstrapper(serverCommunication.DNS, Integer.toString(serverCommunication.port));
-                        byte[] response = ServerCommunication.aesEncrypt(tokens[1], encrytionKey);
-                        serverCommunication.deleteData(ServerCommunication.byteArrayToHexString(response));
+                        serverCommunication.deleteData(tokens[1]);
                     }
                     continue;
                 case "logLevel":

@@ -93,55 +93,20 @@ public class ClientConnection extends Thread{
         return data;
     }
 
-
-    /**
-     * decrypt the incoming request from client
-     *
-     * @param encryptedHexString, SecretKey sharedKey
-     * @return
-     */
-    public static String aesDecrypt(String targetIP, String targetPort, String encryptedHexString) {
-        int IP0 = Integer.parseInt(targetIP.split("\\.")[0]) % 100000;
-        int IP1 = Integer.parseInt(targetIP.split("\\.")[1]) % 100000;
-        int IP2 = Integer.parseInt(targetIP.split("\\.")[2]) % 100000;
-        int IP3 = Integer.parseInt(targetIP.split("\\.")[3]) % 100000;
-        int port = Integer.parseInt(targetPort) % 100000;
-        int result = (IP0 + IP1 + IP2 + IP3 + port) % 100000;
-        result = 100000 - result;
-
-        try (Socket socketForBootstrapper = new Socket("127.0.0.1", 50000);
-             OutputStream outputStreamForBootstrapper = socketForBootstrapper.getOutputStream();
-             InputStream inputStreamForBootstrapper = socketForBootstrapper.getInputStream()){
-            MessageSendGet messageSendGet = new MessageSendGet();
-            messageSendGet.sendMessage(outputStreamForBootstrapper,  targetIP + " " + targetPort + " " + result + " ENC");
-            String encryptionKey = messageSendGet.getMessage(inputStreamForBootstrapper);
-
-            System.out.println(encryptionKey);
-
-            byte[] encryptedBytes = hexStringToBytes(encryptedHexString);
-            SecretKey key = new SecretKeySpec(encryptionKey.getBytes(), "AES");
-            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-            cipher.init(Cipher.DECRYPT_MODE, key);
-            byte[] decryptedBytes = cipher.doFinal(encryptedBytes);
-
-            return new String(decryptedBytes);
-        } catch (Exception e) {throw new RuntimeException(e);}
-    }
-
     /**
      * Encrypt String value with key
      * @param message String to encrypt
      * @param sharedKey String to use as key for encryption
      *
      */
-    public static byte[] aesEncrypt(String message, String sharedKey) throws Exception {
-        byte[] sharedKeyBytes = sharedKey.getBytes(StandardCharsets.UTF_8);
-        byte[] aesKeyBytes = new byte[16];
-        System.arraycopy(sharedKeyBytes, 0, aesKeyBytes, 0, Math.min(sharedKeyBytes.length, 16));
-        SecretKey key = new SecretKeySpec(aesKeyBytes, "AES");
-        Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-        cipher.init(Cipher.ENCRYPT_MODE, key);
-        return cipher.doFinal(message.getBytes(StandardCharsets.UTF_8));
+    public static String encryption(String message, String sharedKey) {
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < message.length(); i++) {
+            char character = message.charAt(i);
+            char keyChar = sharedKey.charAt(i % sharedKey.length());
+            result.append((char) (character ^ keyChar));
+        }
+        return result.toString();
     }
 
     /**
@@ -162,7 +127,6 @@ public class ClientConnection extends Thread{
             for (Data dataInMemory : jsonArray) {
                 if (!dataInMemory.getKey().equals(data.getKey())) {
                     if(helper.calculateMD5(dataInMemory.getKey()).compareTo(ourMD5) > 0 && !insertedOrNot){
-                        System.out.println("UPDATEMEMORY: " + data.getKey() + " " + data.getValue());
                         insertedOrNot = true;
                         newDataArray.add(data);
                         newDataArray.add(dataInMemory);
@@ -283,9 +247,7 @@ public class ClientConnection extends Thread{
      * @return
      */
     public synchronized String getData(String key) {
-        System.out.println("server get data output"+ key);
         try{
-            System.out.println(key);
             for(int eachIndex = 0; eachIndex < macroDefinitions.getCacheSize(); eachIndex++){
                 if(cache[eachIndex] == null){
                     return ("get_error " + key);
@@ -761,12 +723,22 @@ public class ClientConnection extends Thread{
         }
     }
 
-    public static String byteArrayToHexString(byte[] bytes) {
-        StringBuilder result = new StringBuilder();
-        for (byte b : bytes) {
-            result.append(String.format("%02X", b));
-        }
-        return result.toString();
+    public static String getKeyFromBootstrapper(String targetIP, String targetPort){
+        int IP0 = Integer.parseInt(targetIP.split("\\.")[0]) % 100000;
+        int IP1 = Integer.parseInt(targetIP.split("\\.")[1]) % 100000;
+        int IP2 = Integer.parseInt(targetIP.split("\\.")[2]) % 100000;
+        int IP3 = Integer.parseInt(targetIP.split("\\.")[3]) % 100000;
+        int port = Integer.parseInt(targetPort) % 100000;
+        int result = (IP0 + IP1 + IP2 + IP3 + port) % 100000;
+        result = 100000 - result;
+
+        try (Socket socketForBootstrapper = new Socket("127.0.0.1", 50000);
+             OutputStream outputStreamForBootstrapper = socketForBootstrapper.getOutputStream();
+             InputStream inputStreamForBootstrapper = socketForBootstrapper.getInputStream()){
+            MessageSendGet messageSendGet = new MessageSendGet();
+            messageSendGet.sendMessage(outputStreamForBootstrapper,  targetIP + " " + targetPort + " " + result + " ENC");
+            return messageSendGet.getMessage(inputStreamForBootstrapper);
+        } catch (Exception e) {throw new RuntimeException(e);}
     }
 
     // Main RUN method for threads ------------------------------------------------------------------------------------
@@ -789,16 +761,20 @@ public class ClientConnection extends Thread{
                     String keywordCommand = getMessage.split(" ")[0];
                     switch (keywordCommand){
                         case "put":
-                            if(helper.dataInRangeOrNotChecker(getMessage.split(" ")[1], metadata, macroDefinitions.getListenAddress(), macroDefinitions.getServerPort())){
-                                String valueFromRequest = helper.extractValue(getMessage);
+
+                            String encryptionKeyPut = getKeyFromBootstrapper(macroDefinitions.getListenAddress(), Integer.toString(macroDefinitions.getServerPort()));
+                            String decryptedKeyPut = encryption(getMessage.split(" ")[1], encryptionKeyPut);
+                            String decryptedValuePut = encryption(getMessage.split(" ")[2], encryptionKeyPut);
+
+                           if(helper.dataInRangeOrNotChecker(decryptedKeyPut, metadata, macroDefinitions.getListenAddress(), macroDefinitions.getServerPort())){
+                                String valueFromRequest = helper.extractValue("put " + decryptedKeyPut + " " + decryptedValuePut);
                                 if(valueFromRequest.equals("null")){
-                                    updateReplicas(getMessage.split(" ")[1], null, "delete");
-                                    messageSendGet.sendMessage(outputStream, deleteData(getMessage.split(" ")[1]));
+                                    updateReplicas(decryptedKeyPut, null, "delete");
+                                    messageSendGet.sendMessage(outputStream, encryption(deleteData(decryptedKeyPut), encryptionKeyPut));
                                 }
                                 else{
-                                    String returnOfPutData = putData(getMessage.split(" ")[1], valueFromRequest);
-                                    updateReplicas(getMessage.split(" ")[1], valueFromRequest, "put");
-                                    messageSendGet.sendMessage(outputStream, returnOfPutData);
+                                    updateReplicas(decryptedKeyPut, valueFromRequest, "put");
+                                    messageSendGet.sendMessage(outputStream, encryption(putData(decryptedKeyPut, valueFromRequest), encryptionKeyPut));
                                 }
                                 continue;
                             }
@@ -816,36 +792,28 @@ public class ClientConnection extends Thread{
                             }
                             continue;
                         case "get":
-                            String decryptedKey = aesDecrypt(macroDefinitions.getListenAddress(), Integer.toString(macroDefinitions.getServerPort()), getMessage.split(" ")[1]);
-                            if(!getData(decryptedKey).split(" ")[0].equals("get_error")){
-                                try (Socket socketForBootstrapper = new Socket("127.0.0.1", 50000);
-                                     OutputStream outputStreamForBootstrapper = socketForBootstrapper.getOutputStream();
-                                     InputStream inputStreamForBootstrapper = socketForBootstrapper.getInputStream()){
 
-                                    int IP0 = Integer.parseInt(macroDefinitions.getListenAddress().split("\\.")[0]) % 100000;
-                                    int IP1 = Integer.parseInt(macroDefinitions.getListenAddress().split("\\.")[1]) % 100000;
-                                    int IP2 = Integer.parseInt(macroDefinitions.getListenAddress().split("\\.")[2]) % 100000;
-                                    int IP3 = Integer.parseInt(macroDefinitions.getListenAddress().split("\\.")[3]) % 100000;
-                                    int port = macroDefinitions.getServerPort() % 100000;
-                                    int result = (IP0 + IP1 + IP2 + IP3 + port) % 100000;
-                                    result = 100000 - result;
+                            String encryptionKey = getKeyFromBootstrapper(macroDefinitions.getListenAddress(), Integer.toString(macroDefinitions.getServerPort()));
+                            String decryptedData = encryption(getMessage.split(" ")[1], encryptionKey);
 
-                                    MessageSendGet messageSendGet = new MessageSendGet();
-                                    messageSendGet.sendMessage(outputStreamForBootstrapper,  macroDefinitions.getListenAddress() + " " + macroDefinitions.getServerPort() + " " + result + " ENC");
-                                    String encryptionKey = messageSendGet.getMessage(inputStreamForBootstrapper);
-
-                                    byte[] response = aesEncrypt(getData(decryptedKey), encryptionKey);
-                                    messageSendGet.sendMessage(outputStream, byteArrayToHexString(response));
-                                } catch (Exception e) {throw new RuntimeException(e);}
+                            if(!getData(decryptedData).split(" ")[0].equals("get_error")){
+                                String encryptedValue = encryption(getData(decryptedData), encryptionKey);
+                                messageSendGet.sendMessage(outputStream, encryptedValue);
                             }
                             else{
                                 messageSendGet.sendMessage(outputStream, "server_not_responsible");
                             }
+
                             continue;
                         case "delete":
-                            if(helper.dataInRangeOrNotChecker(getMessage.split(" ")[1], metadata, macroDefinitions.getListenAddress(), macroDefinitions.getServerPort())){
-                                updateReplicas(getMessage.split(" ")[1], null, "delete");
-                                messageSendGet.sendMessage(outputStream, deleteData(getMessage.split(" ")[1]));
+
+                            String encryptionKeyDelete = getKeyFromBootstrapper(macroDefinitions.getListenAddress(), Integer.toString(macroDefinitions.getServerPort()));
+                            String decryptedDataDelete = encryption(getMessage.split(" ")[1], encryptionKeyDelete);
+
+                            if(helper.dataInRangeOrNotChecker(decryptedDataDelete, metadata, macroDefinitions.getListenAddress(), macroDefinitions.getServerPort())){
+                                updateReplicas(decryptedDataDelete, null, "delete");
+                                String encryptedValue = encryption(deleteData(decryptedDataDelete), encryptionKeyDelete);
+                                messageSendGet.sendMessage(outputStream, encryptedValue);
                             }
                             else{
                                 messageSendGet.sendMessage(outputStream, "server_not_responsible");
