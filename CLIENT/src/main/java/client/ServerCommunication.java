@@ -282,9 +282,12 @@ public class ServerCommunication {
             }
             else{retryResponse = responseOfPut;}
 
-            System.out.println(retryResponse);
-            String decryptedKeyValue = encryption(retryResponse, encrytionKey);
-            System.out.println("EchoClient> " + decryptedKeyValue);
+            if(!(retryResponse.equals("server_stopped") || retryResponse.equals("server_not_responsible") || retryResponse.equals("server_write_lock"))){
+                String decryptedKeyValue = encryption(retryResponse, encrytionKey);
+                System.out.println("EchoClient> " + decryptedKeyValue);
+            } else {
+                System.out.println("EchoClient> " + retryResponse);
+            }
         } catch (Exception e){
             System.out.println("EchoClient> " + e.getMessage());
         }
@@ -361,8 +364,12 @@ public class ServerCommunication {
             }
             else{retryResponse = responseOfPut;}
 
-            String decryptedKeyValue = encryption(retryResponse, encrytionKey);
-            System.out.println("EchoClient> " + decryptedKeyValue);
+            if(!(retryResponse.equals("server_stopped") || retryResponse.equals("server_not_responsible") || retryResponse.equals("server_write_lock"))){
+                String decryptedKeyValue = encryption(retryResponse, encrytionKey);
+                System.out.println("EchoClient> " + decryptedKeyValue);
+            } else {
+                System.out.println("EchoClient> " + retryResponse);
+            }
         } catch (Exception e){
             System.out.println("EchoClient> " + e.getMessage());
         }
@@ -440,8 +447,12 @@ public class ServerCommunication {
             }
             else{retryResponse = responseOfPut;}
 
-            String decryptedKeyValue = encryption(retryResponse, encrytionKey);
-            System.out.println("EchoClient> " + decryptedKeyValue);
+            if(!(retryResponse.equals("server_stopped") || retryResponse.equals("server_not_responsible") || retryResponse.equals("server_write_lock"))){
+                String decryptedKeyValue = encryption(retryResponse, encrytionKey);
+                System.out.println("EchoClient> " + decryptedKeyValue);
+            } else {
+                System.out.println("EchoClient> " + retryResponse);
+            }
         } catch (Exception e){
             System.out.println("EchoClient> " + e.getMessage());
         }
