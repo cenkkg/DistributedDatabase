@@ -94,7 +94,6 @@ public class ECSServer {
 
                 while (line != null) {
                     for(int eachECSConfig = 0; eachECSConfig < line.split(" ").length; eachECSConfig++){
-                        System.out.println(line.split(" ")[eachECSConfig]);
                         if(line.split(" ")[eachECSConfig].split(":")[0].equals(macroDefinitions.getListenAddress()) && line.split(" ")[eachECSConfig].split(":")[1].equals(Integer.toString(macroDefinitions.getServerPort()))){
                             createOrNot = true;
                         }
