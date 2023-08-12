@@ -19,11 +19,62 @@ public class ECSServer {
     private static Map<List<String>, List<String>> metadata = new HashMap<>();
     private static MessageSendGet messageSendGet = new MessageSendGet();
 
+    // Getting MACROS
+    public static MacroDefinitions macroDefinitions = new MacroDefinitions();
+
     public static class ServerPinger extends Thread{
 
         @Override
         public void run() {
             while(true) {
+                if (macroDefinitions.getCoordiantorServer() != null && !macroDefinitions.getCoordiantorServer().equals(macroDefinitions.getListenAddress() + ":"  + macroDefinitions.getServerPort())) {
+                    File fileForECSs = new File("./" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + ".txt");
+
+                    try {
+                        FileReader fileReader = new FileReader(fileForECSs);
+                        BufferedReader bufferedReader = new BufferedReader(fileReader);
+                        String line;
+                        Socket socketForPrimaryECS = new Socket(macroDefinitions.getCoordiantorServer().split(":")[0], Integer.parseInt(macroDefinitions.getCoordiantorServer().split(":")[1]));
+                        while ((line = bufferedReader.readLine()) != null) {
+                            if(!line.equals(macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort())){
+                                Socket currentSocketForECS = new Socket(macroDefinitions.getListenAddress(), macroDefinitions.getServerPort());
+                                try {
+                                    OutputStream outputStreamForPrimaryECS = socketForPrimaryECS.getOutputStream();
+                                    InputStream inputStreamForCurrenctECS = currentSocketForECS.getInputStream();{
+                                        outputStreamForPrimaryECS.write("PRIMARYECSSENDMETADATA".getBytes());
+
+                                        Thread.sleep(700);
+
+                                        int availableBytes = inputStreamForCurrenctECS.available();
+                                        if (availableBytes == 0) {
+                                            try {
+                                                File fileForCurrentECSMetadata = new File("./" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + ".txt");
+
+                                                FileReader fileReader2 = new FileReader(fileForCurrentECSMetadata);
+                                                BufferedReader bufferedReader2 = new BufferedReader(fileReader);
+                                                String lineToRead;
+                                                while ((lineToRead = bufferedReader.readLine()) != null) {
+                                                    if(!lineToRead.equals(macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort())){
+                                                        try (Socket socketForFirstReplicaServer = new Socket(lineToRead.split(":")[0], Integer.valueOf(line.split(":")[1]));
+                                                             OutputStream outputStreamForTargetECS = socketForFirstReplicaServer.getOutputStream()){
+                                                            outputStreamForTargetECS.write("YOUARENEWCOORDINATOR".getBytes());
+                                                            ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStreamForTargetECS);
+                                                            objectOutputStream.writeObject(metadata);
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                            } catch (Exception e) {}
+                                        }
+                                    }
+                                } catch (IOException | InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                    } catch (Exception e) {}
+                }
+
                 for (Map.Entry<List<String>, List<String>> entry: metadata.entrySet()) {
                     String address = entry.getKey().get(0);
                     int port = Integer.parseInt(entry.getKey().get(1));
@@ -63,8 +114,6 @@ public class ECSServer {
     public static void main(String[] args)  {
         try {
 
-            // Getting MACROS
-            MacroDefinitions macroDefinitions = new MacroDefinitions();
 
             for (int i = 0; i < args.length; i += 2) {
                 String flag = args[i];
