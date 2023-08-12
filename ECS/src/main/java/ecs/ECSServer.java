@@ -91,18 +91,25 @@ public class ECSServer {
                 boolean createOrNot = false;
                 BufferedReader reader = new BufferedReader(new FileReader(macroDefinitions.getEcsServersFilePath()));
                 String line = reader.readLine();
+
                 while (line != null) {
                     for(int eachECSConfig = 0; eachECSConfig < line.split(" ").length; eachECSConfig++){
+                        System.out.println(line.split(" ")[eachECSConfig]);
                         if(line.split(" ")[eachECSConfig].split(":")[0].equals(macroDefinitions.getListenAddress()) && line.split(" ")[eachECSConfig].split(":")[1].equals(Integer.toString(macroDefinitions.getServerPort()))){
                             createOrNot = true;
+                        }
+                        else{
                             newConfig += line.split(" ")[eachECSConfig] + " ";
                         }
                     }
+                    break;
                 }
                 reader.close();
                 if(!createOrNot) {
                     return;
                 }
+
+                newConfig = newConfig.substring(0, newConfig.length() - 1);
 
                 FileWriter writerObj = new FileWriter(macroDefinitions.getEcsServersFilePath(), false);
                 writerObj.write(newConfig);
