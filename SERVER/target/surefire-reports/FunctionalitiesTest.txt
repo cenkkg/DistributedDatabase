@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: FunctionalitiesTest
--------------------------------------------------------------------------------
-Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.257 s - in FunctionalitiesTest

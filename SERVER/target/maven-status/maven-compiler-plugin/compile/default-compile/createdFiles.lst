@@ -1,6 +1,7 @@
+macros/MacroDefinitions.class
+server/FixedCapacityMap.class
 server/Server.class
 helperMethods/Helper.class
-macros/MacroDefinitions.class
 server/ClientConnection.class
 server/MessageSendGet.class
 server/Data.class

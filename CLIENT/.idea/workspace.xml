@@ -5,9 +5,98 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8c4dc78a-76c9-48ce-b82f-e95112169c8c" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/../.idea/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/.idea/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/.idea/compiler.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/.idea/encodings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/.idea/jarRepositories.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/.idea/libraries/Maven__com_google_code_gson_gson_2_8_9.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/.idea/libraries/Maven__net_bytebuddy_byte_buddy_1_9_10.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/.idea/libraries/Maven__net_bytebuddy_byte_buddy_agent_1_9_10.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/.idea/libraries/Maven__org_apiguardian_apiguardian_api_1_1_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/.idea/libraries/Maven__org_checkerframework_checker_qual_3_31_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/.idea/libraries/Maven__org_junit_jupiter_junit_jupiter_api_5_5_2.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/.idea/libraries/Maven__org_junit_jupiter_junit_jupiter_engine_5_5_2.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/.idea/libraries/Maven__org_junit_platform_junit_platform_commons_1_5_2.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/.idea/libraries/Maven__org_junit_platform_junit_platform_engine_1_5_2.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/.idea/libraries/Maven__org_mockito_mockito_core_3_1_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/.idea/libraries/Maven__org_mockito_mockito_junit_jupiter_3_1_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/.idea/libraries/Maven__org_objenesis_objenesis_2_6.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/.idea/libraries/Maven__org_opentest4j_opentest4j_1_2_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/.idea/libraries/Maven__org_postgresql_postgresql_42_6_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/.idea/libraries/Maven__org_projectlombok_lombok_1_18_28.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/.idea/uiDesigner.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/pom.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/src/main/java/bootstrapper/Bootstrapper.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/src/main/java/bootstrapper/MessageSendGet.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/src/main/java/macros/MacroDefinitions.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/target/Bootstrapper-1.0-SNAPSHOT.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/target/classes/bootstrapper/Bootstrapper.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/target/classes/bootstrapper/MessageSendGet.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/target/classes/macros/MacroDefinitions.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/target/maven-archiver/pom.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Bootstrapper/target/original-Bootstrapper-1.0-SNAPSHOT.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../Bootstrapper/.idea/modules.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cdb-client.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../Bootstrapper/Bootstrapper.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cdb-project.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/client/ClientSocket.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/client/ClientSocket.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/client/ServerCommunication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/client/ServerCommunication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/cdb-client-1.0-SNAPSHOT.jar" beforeDir="false" afterPath="$PROJECT_DIR$/target/cdb-client-1.0-SNAPSHOT.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/client/ClientSocket.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/client/ClientSocket.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/client/ServerCommunication.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/client/ServerCommunication.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/macros/MacroDefinitions.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/createdFiles.lst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/inputFiles.lst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/original-cdb-client-1.0-SNAPSHOT.jar" beforeDir="false" afterPath="$PROJECT_DIR$/target/original-cdb-client-1.0-SNAPSHOT.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/OutputStreamTest.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/TEST-OutputStreamTest.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/OutputStreamTest.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ECS/cdb-ecs.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ECS/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../ECS/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ECS/src/main/java/ecs/ECSServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/../ECS/src/main/java/ecs/ECSServer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ECS/src/main/java/ecs/ServerConnection.java" beforeDir="false" afterPath="$PROJECT_DIR$/../ECS/src/main/java/ecs/ServerConnection.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ECS/src/main/java/macros/MacroDefinitions.java" beforeDir="false" afterPath="$PROJECT_DIR$/../ECS/src/main/java/macros/MacroDefinitions.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ECS/target/cdb-ecs-1.0-SNAPSHOT.jar" beforeDir="false" afterPath="$PROJECT_DIR$/../ECS/target/cdb-ecs-1.0-SNAPSHOT.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ECS/target/classes/ecs/ECSServer$ServerPinger.class" beforeDir="false" afterPath="$PROJECT_DIR$/../ECS/target/classes/ecs/ECSServer$ServerPinger.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ECS/target/classes/ecs/ECSServer.class" beforeDir="false" afterPath="$PROJECT_DIR$/../ECS/target/classes/ecs/ECSServer.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ECS/target/classes/ecs/ServerConnection.class" beforeDir="false" afterPath="$PROJECT_DIR$/../ECS/target/classes/ecs/ServerConnection.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ECS/target/classes/macros/MacroDefinitions.class" beforeDir="false" afterPath="$PROJECT_DIR$/../ECS/target/classes/macros/MacroDefinitions.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ECS/target/original-cdb-ecs-1.0-SNAPSHOT.jar" beforeDir="false" afterPath="$PROJECT_DIR$/../ECS/target/original-cdb-ecs-1.0-SNAPSHOT.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ECS/target/surefire-reports/EcsServerTest.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../ECS/target/surefire-reports/EcsServerTest.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ECS/target/surefire-reports/TEST-EcsServerTest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../ECS/target/surefire-reports/TEST-EcsServerTest.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SERVER/.idea/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/../SERVER/.idea/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SERVER/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../SERVER/.idea/compiler.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SERVER/src/main/java/helperMethods/Helper.java" beforeDir="false" afterPath="$PROJECT_DIR$/../SERVER/src/main/java/helperMethods/Helper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SERVER/src/main/java/macros/MacroDefinitions.java" beforeDir="false" afterPath="$PROJECT_DIR$/../SERVER/src/main/java/macros/MacroDefinitions.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../SERVER/src/main/java/server/ClientConnection.java" beforeDir="false" afterPath="$PROJECT_DIR$/../SERVER/src/main/java/server/ClientConnection.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../SERVER/src/main/testData/data.json" beforeDir="false" afterPath="$PROJECT_DIR$/../SERVER/src/main/testData/data.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SERVER/src/main/java/server/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/../SERVER/src/main/java/server/Server.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SERVER/src/main/testData/data.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SERVER/src/test/java/FunctionalitiesTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/../SERVER/src/test/java/FunctionalitiesTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SERVER/target/cdb-server-1.0-SNAPSHOT.jar" beforeDir="false" afterPath="$PROJECT_DIR$/../SERVER/target/cdb-server-1.0-SNAPSHOT.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SERVER/target/classes/helperMethods/Helper.class" beforeDir="false" afterPath="$PROJECT_DIR$/../SERVER/target/classes/helperMethods/Helper.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SERVER/target/classes/macros/MacroDefinitions.class" beforeDir="false" afterPath="$PROJECT_DIR$/../SERVER/target/classes/macros/MacroDefinitions.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SERVER/target/classes/server/ClientConnection.class" beforeDir="false" afterPath="$PROJECT_DIR$/../SERVER/target/classes/server/ClientConnection.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SERVER/target/classes/server/Server.class" beforeDir="false" afterPath="$PROJECT_DIR$/../SERVER/target/classes/server/Server.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SERVER/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/../SERVER/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SERVER/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/../SERVER/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SERVER/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/createdFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/../SERVER/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/createdFiles.lst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SERVER/target/original-cdb-server-1.0-SNAPSHOT.jar" beforeDir="false" afterPath="$PROJECT_DIR$/../SERVER/target/original-cdb-server-1.0-SNAPSHOT.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SERVER/target/surefire-reports/FunctionalitiesTest.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SERVER/target/surefire-reports/TEST-FunctionalitiesTest.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SERVER/target/test-classes/FunctionalitiesTest.class" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -16,6 +105,14 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="GitSEFilterConfiguration">
+    <file-type-list>
+      <filtered-out-file-type name="LOCAL_BRANCH" />
+      <filtered-out-file-type name="REMOTE_BRANCH" />
+      <filtered-out-file-type name="TAG" />
+      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
+    </file-type-list>
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
@@ -33,7 +130,7 @@
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
-    <property name="nodejs_package_manager_path" value="npm" />
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -70,6 +167,7 @@
       <workItem from="1686002477021" duration="69000" />
       <workItem from="1686002751557" duration="29993000" />
       <workItem from="1686952810582" duration="11695000" />
+      <workItem from="1691795990267" duration="5538000" />
     </task>
     <servers />
   </component>

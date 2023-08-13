@@ -39,8 +39,7 @@ public class Server {
             AtomicBoolean acceptConnection = new AtomicBoolean(true);
 
             // Create CACHE
-            Data[] cache = new Data[macroDefinitions.getCacheSize()];
-            Arrays.fill(cache, null);
+            FixedCapacityMap<String, Data> cache = null;
 
             for (int i = 0; i < args.length; i += 2) {
                 String flag = args[i];
@@ -71,25 +70,6 @@ public class Server {
                         else {
                             // Not First time running server.
                             macroDefinitions.setMemoryFilePath(value + "/data.json");
-                            Gson gson = new Gson();
-                            try (Reader reader = new FileReader(macroDefinitions.getMemoryFilePath())) {
-                                Data[] jsonArray = gson.fromJson(reader, Data[].class);
-                                List<Data> newDataArray = new ArrayList<>();
-                                for (Data dataInMemory : jsonArray) {
-                                    newDataArray.add(dataInMemory);
-                                }
-                                if(macroDefinitions.getCacheSize() >= newDataArray.size()){
-                                    for(int eachDataInMemory = 0; eachDataInMemory < newDataArray.size(); eachDataInMemory++){
-                                        cache[eachDataInMemory] = newDataArray.get(eachDataInMemory);
-                                    }
-                                }else{
-                                    for(int eachDataInMemory = 0; eachDataInMemory < macroDefinitions.getCacheSize(); eachDataInMemory++){
-                                        cache[eachDataInMemory] = newDataArray.get(eachDataInMemory);
-                                    }
-                                }
-                            } catch (Exception e) {
-                                throw new RuntimeException(e);
-                            }
                         }
                         continue;
                     case "-c":
@@ -115,10 +95,67 @@ public class Server {
                         continue;
                     case "-s":
                         macroDefinitions.setCachePolicy(value);
+                        if(value.equals("LRU") || value.equals("LFU")) {
+                            System.out.println("here");
+                            cache = new FixedCapacityMap<>(macroDefinitions.getCacheSize(), true);
+                            Gson gson = new Gson();
+                            try (Reader reader = new FileReader(macroDefinitions.getMemoryFilePath())) {
+                                Data[] jsonArray = gson.fromJson(reader, Data[].class);
+                                List<Data> newDataArray = new ArrayList<>();
+                                for (Data dataInMemory : jsonArray) {
+                                    newDataArray.add(dataInMemory);
+                                }
+                                if(macroDefinitions.getCacheSize() >= newDataArray.size()){
+                                    for(int eachDataInMemory = 0; eachDataInMemory < newDataArray.size(); eachDataInMemory++){
+                                        cache.put(newDataArray.get(eachDataInMemory).getKey(), newDataArray.get(eachDataInMemory));
+                                    }
+                                }else{
+                                    for(int eachDataInMemory = 0; eachDataInMemory < macroDefinitions.getCacheSize(); eachDataInMemory++){
+                                        cache.put(newDataArray.get(eachDataInMemory).getKey(), newDataArray.get(eachDataInMemory));
+                                    }
+                                }
+                            } catch (Exception e) {
+                                System.out.println(e.getMessage());
+                                throw new RuntimeException(e);
+                            }
+
+                        }
+                        else if(value.equals("FIFO")) {
+                            cache= new FixedCapacityMap<String, Data>(macroDefinitions.getCacheSize(), false);
+                            Gson gson = new Gson();
+                            try (Reader reader = new FileReader(macroDefinitions.getMemoryFilePath())) {
+                                Data[] jsonArray = gson.fromJson(reader, Data[].class);
+                                List<Data> newDataArray = new ArrayList<>();
+                                for (Data dataInMemory : jsonArray) {
+                                    newDataArray.add(dataInMemory);
+                                }
+                                if(macroDefinitions.getCacheSize() >= newDataArray.size()){
+                                    for(int eachDataInMemory = 0; eachDataInMemory < newDataArray.size(); eachDataInMemory++){
+                                        cache.put(newDataArray.get(eachDataInMemory).getKey(), newDataArray.get(eachDataInMemory));
+                                    }
+                                }else{
+                                    for(int eachDataInMemory = 0; eachDataInMemory < macroDefinitions.getCacheSize(); eachDataInMemory++){
+                                        cache.put(newDataArray.get(eachDataInMemory).getKey(), newDataArray.get(eachDataInMemory));
+                                    }
+                                }
+                            } catch (Exception e) {
+                                System.out.println(e.getMessage());
+                                throw new RuntimeException(e);
+                            }
+                        }
+
+                        else {
+                            //TODO: give error here
+                            throw new RuntimeException();
+                        }
                         continue;
                     case "-b":
                         macroDefinitions.setBootstrapServerIP(value.split(":")[0]);
                         macroDefinitions.setBootstrapServerPort(Integer.parseInt(value.split(":")[1]));
+                        continue;
+                    case "-bs":
+                        macroDefinitions.setEncryptionServer(value.split(":")[0]);
+                        macroDefinitions.setEncryptionServerPort(Integer.parseInt(value.split(":")[1]));
                         continue;
                     case "-h":
                         continue;
@@ -194,39 +231,23 @@ public class Server {
 
                             // Save them to Cache --------------------------------------------------------------------------------
                             int numberOfEmptyInCache = 0;
-                            for(int eachElementInCache = 0; eachElementInCache < macroDefinitions.getCacheSize(); eachElementInCache++){
-                                if(cache[eachElementInCache] == null){
+                            for (Map.Entry<String, Data> entry : cache.entrySet()) {
+                                if (entry.getValue() == null) {
                                     numberOfEmptyInCache++;
                                 }
                             }
 
-                            if((numberOfEmptyInCache != 0) && numberOfEmptyInCache <= newDataFromTargetArray.size()){
-                                int firstEmptyIndex = -1;
-                                for(int eachElementInCache = 0; eachElementInCache < macroDefinitions.getCacheSize(); eachElementInCache++){
-                                    if(cache[eachElementInCache] == null){
-                                        firstEmptyIndex = eachElementInCache;
-                                        break;
-                                    }
-                                }
-
-                                int indexFromTarget = 0;
-                                for(int eachElementInCache = firstEmptyIndex; eachElementInCache < macroDefinitions.getCacheSize(); eachElementInCache++){
-                                    cache[eachElementInCache] = newDataFromTargetArray.get(indexFromTarget);
-                                    indexFromTarget++;
+                            //if cache doesnt have enough space for every data that comes from target array
+                            if (numberOfEmptyInCache != 0 && numberOfEmptyInCache <= newDataFromTargetArray.size()) {
+                                for(int indexFromTarget = 0; indexFromTarget < numberOfEmptyInCache ; indexFromTarget++){
+                                    cache.put(newDataFromTargetArray.get(indexFromTarget).getKey(), newDataFromTargetArray.get(indexFromTarget));
                                 }
                             }
-                            else if(numberOfEmptyInCache != 0){
-                                int firstEmptyIndex = -1;
-                                for(int eachElementInCache = 0; eachElementInCache < macroDefinitions.getCacheSize(); eachElementInCache++){
-                                    if(cache[eachElementInCache] == null){
-                                        firstEmptyIndex = eachElementInCache;
-                                        break;
-                                    }
-                                }
 
-                                for(int eachDataItemFromTargetIndex = 0; eachDataItemFromTargetIndex < newDataFromTargetArray.size(); eachDataItemFromTargetIndex++){
-                                    cache[firstEmptyIndex] = newDataFromTargetArray.get(eachDataItemFromTargetIndex);
-                                    firstEmptyIndex++;
+                            //if cache has enough space for every data that comes from target array
+                            else if(numberOfEmptyInCache != 0){
+                                for(int indexFromTarget = 0; indexFromTarget < newDataFromTargetArray.size() ; indexFromTarget++){
+                                    cache.put(newDataFromTargetArray.get(indexFromTarget).getKey(), newDataFromTargetArray.get(indexFromTarget));
                                 }
                             }
                             else{// continue

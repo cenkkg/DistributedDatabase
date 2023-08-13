@@ -1,18 +1,21 @@
 package client;
 
+import lombok.Getter;
+import lombok.Setter;
+
+import javax.crypto.*;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
+@Getter
+@Setter
 public class ServerCommunication {
-    private static final Logger logger = Logger.getLogger(ServerCommunication.class.getName());
     Socket socket;
     String DNS;
     int port;
@@ -23,26 +26,9 @@ public class ServerCommunication {
     // Metadata
     Map<List<String>, List<String>> metadataStore = new HashMap<>();
 
-    public void setOutputStream(OutputStream outputStream) {
-        this.outputStream = outputStream;
-    }
+    // keys and corresponding iv values
+    List<String> keyList = new ArrayList<>();
 
-    /**
-     * Checks if entered log level is valid
-     *
-     * @param level  specified log level
-     * @return boolean value
-     */
-    private boolean isAcceptedLogLevel(Level level) {
-        Level[] validlevels = {Level.ALL, Level.CONFIG, Level.FINE, Level.FINEST, Level.INFO, Level.OFF, Level.SEVERE, Level.WARNING};
-
-        for (Level acceptedLevel : validlevels) {
-            if (level.equals(acceptedLevel)) {
-                return true;
-            }
-        }
-        return false;
-    }
 
     /**
      * Tries to establish a TCP- connection to
@@ -63,6 +49,8 @@ public class ServerCommunication {
             this.port = port;
 
             connected = true;
+
+            int clientPort = socket.getLocalPort();
         }
         catch (Exception e) {
             System.out.println("Error, connection refused.");
@@ -81,12 +69,14 @@ public class ServerCommunication {
 
             connected = false;
 
+            /*
             System.out.print("EchoClient> ");
             System.out.print("Connection terminated: ");
             System.out.print(DNS);
             System.out.print(" / ");
             System.out.print(port);
             System.out.print("\n");
+             */
         }
         else{
             System.out.print("You need to be connected first.");
@@ -174,29 +164,19 @@ public class ServerCommunication {
     }
 
     /**
-     * Sets the logger to the specified log level.
-     *
-     * @param loglevel  byte array message to be echoed
+     * Encrypt String value with key
+     * @param message String to encrypt
+     * @param sharedKey String to use as key for encryption
      *
      */
-    public void setLogLevel(String loglevel) {
-        try {
-            Level currentLogLevel = logger.getLevel();
-            if (currentLogLevel != Level.parse(loglevel)) {
-                if (isAcceptedLogLevel(Level.parse(loglevel))) {
-                    System.out.println("EchoClient> logLevel set from " + currentLogLevel + " to " + loglevel);
-                    // Update the log level of the program
-                    logger.setLevel(Level.parse(loglevel));
-                }
-            }
-            else {
-                System.out.print("EchoClient> logLevel is already " + currentLogLevel + "\n");
-            }
-
-        } catch (Exception e) {
-            System.out.print("Unknown command \n");
-            getHelp();
+    public static String encryption(String message, String sharedKey) {
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < message.length(); i++) {
+            char character = message.charAt(i);
+            char keyChar = sharedKey.charAt(i % sharedKey.length());
+            result.append((char) (character ^ keyChar));
         }
+        return result.toString();
     }
 
 
@@ -235,9 +215,15 @@ public class ServerCommunication {
      *
      */
     public void putData(String key, String value) {
+        long start = System.currentTimeMillis();
         try{
             MessageSendGet messageSendGet = new MessageSendGet();
-            messageSendGet.sendMessage(outputStream, "put " + key + " " + value);
+
+            String encrytionKey = getKeyFromBootstrapper(DNS, Integer.toString(port));
+            String encryptedKeyValue = encryption(key, encrytionKey);
+            String encryptedValueValue = encryption(value, encrytionKey);
+
+            messageSendGet.sendMessage(outputStream, "put " + encryptedKeyValue + " " + encryptedValueValue);
             String responseOfPut = messageSendGet.getMessage(inputStream);
 
             String retryResponse = "";
@@ -284,7 +270,7 @@ public class ServerCommunication {
                 }
                 disconnectServer();
                 createSocket(targetServer.get(0), Integer.parseInt(targetServer.get(1)));
-                messageSendGet.sendMessage(outputStream, "put " + key + " " + value);
+                messageSendGet.sendMessage(outputStream, "put " + encryptedKeyValue + " " + encryptedValueValue);
                 retryResponse = messageSendGet.getMessage(inputStream);
             }
             else if (responseOfPut.equals("server_write_lock")) {
@@ -295,10 +281,18 @@ public class ServerCommunication {
                 putData(key,value);
             }
             else{retryResponse = responseOfPut;}
-            System.out.println("EchoClient> " + retryResponse);
+
+            if(!(retryResponse.equals("server_stopped") || retryResponse.equals("server_not_responsible") || retryResponse.equals("server_write_lock"))){
+                String decryptedKeyValue = encryption(retryResponse, encrytionKey);
+                System.out.println("EchoClient> " + decryptedKeyValue);
+            } else {
+                System.out.println("EchoClient> " + retryResponse);
+            }
         } catch (Exception e){
+            e.printStackTrace(System.out);
             System.out.println("EchoClient> " + e.getMessage());
         }
+        System.out.println("Benchmark for put: " + (System.currentTimeMillis() - start));
     }
 
     /**
@@ -308,9 +302,14 @@ public class ServerCommunication {
      *
      */
     public void getData(String key) {
+        long start = System.currentTimeMillis();
         try{
             MessageSendGet messageSendGet = new MessageSendGet();
-            messageSendGet.sendMessage(outputStream, "get " + key);
+
+            String encrytionKey = getKeyFromBootstrapper(DNS, Integer.toString(port));
+            String encryptedKeyValue = encryption(key, encrytionKey);
+
+            messageSendGet.sendMessage(outputStream, "get " + encryptedKeyValue);
             String responseOfPut = messageSendGet.getMessage(inputStream);
             String retryResponse = "";
             if(responseOfPut.equals("server_stopped")){
@@ -356,7 +355,7 @@ public class ServerCommunication {
                 }
                 disconnectServer();
                 createSocket(targetServer.get(0), Integer.parseInt(targetServer.get(1)));
-                messageSendGet.sendMessage(outputStream, "get " + key);
+                messageSendGet.sendMessage(outputStream, "get " + encryptedKeyValue);
                 retryResponse = messageSendGet.getMessage(inputStream);
             }
             else if (responseOfPut.equals("server_write_lock")) {
@@ -367,10 +366,17 @@ public class ServerCommunication {
                 getData(key);
             }
             else{retryResponse = responseOfPut;}
-            System.out.println("EchoClient> " + retryResponse);
+
+            if(!(retryResponse.equals("server_stopped") || retryResponse.equals("server_not_responsible") || retryResponse.equals("server_write_lock"))){
+                String decryptedKeyValue = encryption(retryResponse, encrytionKey);
+                System.out.println("EchoClient> " + decryptedKeyValue);
+            } else {
+                System.out.println("EchoClient> " + retryResponse);
+            }
         } catch (Exception e){
             System.out.println("EchoClient> " + e.getMessage());
         }
+        System.out.println("Benchmark for get: " + (System.currentTimeMillis() - start));
     }
 
     /**
@@ -380,9 +386,14 @@ public class ServerCommunication {
      *
      */
     public void deleteData(String key) {
+        long start = System.currentTimeMillis();
         try{
             MessageSendGet messageSendGet = new MessageSendGet();
-            messageSendGet.sendMessage(outputStream, "delete " + key);
+
+            String encrytionKey = getKeyFromBootstrapper(DNS, Integer.toString(port));
+            String encryptedKeyValue = encryption(key, encrytionKey);
+
+            messageSendGet.sendMessage(outputStream, "delete " + encryptedKeyValue);
             String responseOfPut = messageSendGet.getMessage(inputStream);
 
             String retryResponse = "";
@@ -429,7 +440,7 @@ public class ServerCommunication {
                 }
                 disconnectServer();
                 createSocket(targetServer.get(0), Integer.parseInt(targetServer.get(1)));
-                messageSendGet.sendMessage(outputStream, "delete " + key);
+                messageSendGet.sendMessage(outputStream, "delete " + encryptedKeyValue);
                 retryResponse = messageSendGet.getMessage(inputStream);
             }
             else if (responseOfPut.equals("server_write_lock")) {
@@ -440,10 +451,17 @@ public class ServerCommunication {
                 deleteData(key);
             }
             else{retryResponse = responseOfPut;}
-            System.out.println("EchoClient> " + retryResponse);
+
+            if(!(retryResponse.equals("server_stopped") || retryResponse.equals("server_not_responsible") || retryResponse.equals("server_write_lock"))){
+                String decryptedKeyValue = encryption(retryResponse, encrytionKey);
+                System.out.println("EchoClient> " + decryptedKeyValue);
+            } else {
+                System.out.println("EchoClient> " + retryResponse);
+            }
         } catch (Exception e){
             System.out.println("EchoClient> " + e.getMessage());
         }
+        System.out.println("Benchmark for delete: " + (System.currentTimeMillis() - start));
     }
 
     /**
@@ -468,7 +486,6 @@ public class ServerCommunication {
      *
      *
      */
-
     public void getKeyrangeHelper() {
         try {
             MessageSendGet messageSendGet = new MessageSendGet();
@@ -480,5 +497,51 @@ public class ServerCommunication {
         catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+
+    /**
+     * Used retrive the encryption keys retrieval and divides keys into parts
+     *
+     *
+     */
+    public void getKeyInformation(String newValue) {
+        try {
+            keyList.clear();
+            MessageSendGet messageSendGet = new MessageSendGet();
+            System.out.println(newValue);
+            messageSendGet.sendMessage(outputStream, newValue);
+
+            String requestOutputFromServer = messageSendGet.getMessage(inputStream);
+
+
+            //***Trial**///
+            keyList.add(requestOutputFromServer);
+            //***Trial**///
+            System.out.println(keyList);
+
+            System.out.println("EchoClient> " + requestOutputFromServer);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static String getKeyFromBootstrapper(String targetIP, String targetPort){
+        int IP0 = Integer.parseInt(targetIP.split("\\.")[0]) % 100000;
+        int IP1 = Integer.parseInt(targetIP.split("\\.")[1]) % 100000;
+        int IP2 = Integer.parseInt(targetIP.split("\\.")[2]) % 100000;
+        int IP3 = Integer.parseInt(targetIP.split("\\.")[3]) % 100000;
+        int port = Integer.parseInt(targetPort) % 100000;
+        int result = (IP0 + IP1 + IP2 + IP3 + port) % 100000;
+        result = 100000 - result;
+
+        try (Socket socketForBootstrapper = new Socket("127.0.0.1", 50000);
+             OutputStream outputStreamForBootstrapper = socketForBootstrapper.getOutputStream();
+             InputStream inputStreamForBootstrapper = socketForBootstrapper.getInputStream()){
+            MessageSendGet messageSendGet = new MessageSendGet();
+            messageSendGet.sendMessage(outputStreamForBootstrapper,  targetIP + " " + targetPort + " " + result + " ENC");
+            return messageSendGet.getMessage(inputStreamForBootstrapper);
+        } catch (Exception e) {throw new RuntimeException(e);}
     }
 }

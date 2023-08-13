@@ -7,10 +7,9 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="cdb-project" />
+        <module name="CLIENT" />
+        <module name="cdb-client" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="cdb-project" target="17" />
-    </bytecodeTargetLevel>
   </component>
 </project>

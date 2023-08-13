@@ -3,8 +3,10 @@ package ecs;
 import com.sun.source.tree.Tree;
 import macros.MacroDefinitions;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -249,17 +251,21 @@ public class ServerConnection extends Thread {
      * @return
      */
     public synchronized void updateMetadataFile() {
-        File file = new File(macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort() + ".txt");
+        File file = new File(macroDefinitions.getEcsFilePath() + "/" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + "_metadataFile" + ".txt");
         try {
             String totalMetadataToFile = "";
-            FileWriter fileWriter = new FileWriter(file);
-            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
             for (Map.Entry<List<String>, List<String>> entry : metadata.entrySet()) {
                 List<String> serverAddressAndPort = entry.getKey();
-                totalMetadataToFile += serverAddressAndPort.get(0) + ":" + serverAddressAndPort.get(1) + " ";
+                List<String> rangeOfServer = entry.getValue();
+                totalMetadataToFile += serverAddressAndPort.get(0) + ":" + serverAddressAndPort.get(1) + ":" + rangeOfServer.get(0) + ":" + rangeOfServer.get(1) + " ";
             }
             String totalMetadataToFile2 = totalMetadataToFile.substring(0, totalMetadataToFile.length() - 1);
+
+            FileWriter fileWriter = new FileWriter(file);
+            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
             bufferedWriter.write(totalMetadataToFile2);
+            bufferedWriter.flush();
+            bufferedWriter.close();
         } catch (Exception e){}
     }
 
@@ -305,28 +311,137 @@ public class ServerConnection extends Thread {
                             messageSendGet.sendMessage(outputStream, removeServerFromMetaData(getMessage.split(" ")[1]));
                             updateMetadataFile();
                             continue;
-                        case "YOUARENEWCOORDINATOR":
-                            ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
-                            metadata = (Map<List<String>, List<String>>) objectInputStream.readObject();
 
-                            File file = new File(macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + ".txt");
-                            try {
-                                String totalMetadataToFile = "";
-                                FileWriter fileWriter = new FileWriter(file);
-                                BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+                        case "YOUARENEWCOORDINATOR":
+                            System.out.println(macroDefinitions.getServerPort() + " is in prep to become new coord okay ");
+                            String newMetadataFileData = messageSendGet.getMessage(inputStream);
+                            String ecsFileData = messageSendGet.getMessage(inputStream);
+
+                            System.out.println("cp1");
+
+                            macroDefinitions.setCoordiantorServer(macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort());
+                            // Updating Metadata ----------------------------------------------------------------------------------------
+                            metadata = new HashMap<>();
+                            if(!Objects.equals(newMetadataFileData, "")) {
+                                for(int eachMetadataIndex = 0; eachMetadataIndex < newMetadataFileData.split(" ").length; eachMetadataIndex++){
+                                    List<String> IPAndPortList = new ArrayList<>();
+                                    IPAndPortList.add(newMetadataFileData.split(" ")[eachMetadataIndex].split(":")[0]);
+                                    IPAndPortList.add(newMetadataFileData.split(" ")[eachMetadataIndex].split(":")[1]);
+
+                                    List<String> rangeList = new ArrayList<>();
+                                    rangeList.add(newMetadataFileData.split(" ")[eachMetadataIndex].split(":")[2]);
+                                    rangeList.add(newMetadataFileData.split(" ")[eachMetadataIndex].split(":")[3]);
+
+                                    metadata.put(IPAndPortList, rangeList);
+                                }
+                            }
+                            updateMetadataFile();
+                            System.out.println("cp2");
+
+                            // Updating ECS Servers ----------------------------------------------------------------------------------------
+                            File fileForECSServers = new File(macroDefinitions.getEcsFilePath() + "/" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + "_ecsServers" + ".txt");
+                            FileWriter fileWriterForECSServers = new FileWriter(fileForECSServers);
+                            BufferedWriter bufferedWriterForECSServers = new BufferedWriter(fileWriterForECSServers);
+                            bufferedWriterForECSServers.write(ecsFileData);
+                            bufferedWriterForECSServers.flush();
+                            bufferedWriterForECSServers.close();
+
+                            System.out.println("new file is supposed to be: " + ecsFileData);
+                            System.out.println("cp3");
+
+                            //send news to ecsservers
+                            String[] ecsList = ecsFileData.split(" ");
+                            for (String ecs : ecsList) {
+                                if (!ecs.equals(macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort())) {
+                                    try (Socket socketForSecondaryECS = new Socket(ecs.split(":")[0], Integer.parseInt(ecs.split(":")[1]));
+                                         OutputStream outputStreamForTargetECS = socketForSecondaryECS.getOutputStream()) {
+                                        System.out.println(macroDefinitions.getListenAddress() + ":"  + macroDefinitions.getServerPort() + " IS NEW COORD AND SEND MSG TO OTHER ECSS");
+                                        messageSendGet.sendMessage(outputStreamForTargetECS, "IAMNEWCOORDINATOR " + macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort());
+                                    } catch (Exception e) {
+                                        e.printStackTrace(System.out);
+                                    }
+                                }
+                            }
+
+                            System.out.println("cp4");
+
+                            //sending the news to kvservers
+                            if(metadata != null) {
                                 for (Map.Entry<List<String>, List<String>> entry : metadata.entrySet()) {
                                     List<String> serverAddressAndPort = entry.getKey();
-                                    totalMetadataToFile += serverAddressAndPort.get(0) + ":" + serverAddressAndPort.get(1) + " ";
-
                                     try (Socket socketForFirstReplicaServer = new Socket(serverAddressAndPort.get(0), Integer.valueOf(serverAddressAndPort.get(1)));
                                          OutputStream outputStreamForTargetServer = socketForFirstReplicaServer.getOutputStream()){
                                         messageSendGet.sendMessage(outputStreamForTargetServer, "NEWECSCOORDINATOR " + macroDefinitions.getListenAddress() + ":" + macroDefinitions.getServerPort());
                                     }
                                 }
-                                String totalMetadataToFile2 = totalMetadataToFile.substring(0, totalMetadataToFile.length() - 1);
-                                bufferedWriter.write(totalMetadataToFile2);
-                            } catch (Exception e){}
-                                continue;
+                            }
+
+                            System.out.println("cp5");
+
+                            continue;
+
+                        case "JOINECS":
+                            File fileForECSServersForNewJoinECS = new File(macroDefinitions.getEcsFilePath() + "/" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + "_ecsServers" + ".txt");
+                            FileReader fileReaderForNewJoinECS = new FileReader(fileForECSServersForNewJoinECS);
+                            BufferedReader bufferedReaderForNewJoinECS = new BufferedReader(fileReaderForNewJoinECS);
+                            String lineForNewJoinECS = bufferedReaderForNewJoinECS.readLine();
+                            String allECSServers = lineForNewJoinECS;
+                            allECSServers += " " + getMessage.split(" ")[1];
+
+                            File fileForECSServersForNewJoinECS2 = new File(macroDefinitions.getEcsFilePath() + "/" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + "_ecsServers" + ".txt");
+                            FileWriter fileWriterForNewJoinECS2 = new FileWriter(fileForECSServersForNewJoinECS2);
+                            BufferedWriter bufferedWriterForNewJoinECS = new BufferedWriter(fileWriterForNewJoinECS2);
+                            bufferedWriterForNewJoinECS.write(allECSServers);
+                            bufferedWriterForNewJoinECS.close();
+                            continue;
+
+                        case "PRIMARYECSSENDMEDATA":
+                            System.out.println("inside primaryecssendmetadata");
+
+                            //read own metadata and sent it to the ecs server that pinged
+                            try{
+                                    //read metadatafile to string and send it to requester ECS
+                                    File metadataFile = new File(macroDefinitions.getEcsFilePath() + "/" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + "_metadataFile" + ".txt");
+                                    FileReader fileReaderForMetadataFile = new FileReader(metadataFile);
+                                    BufferedReader bufferedReaderForMetadataFile = new BufferedReader(fileReaderForMetadataFile);
+                                    //TODO: bu okunus doru mu ya
+
+                                    String line1;
+                                    String lineOfMetadata = "";
+                                    while((line1 = bufferedReaderForMetadataFile.readLine()) != null) {
+                                        lineOfMetadata += line1;
+                                    }
+
+                                    //read ecs servers file to string and send it to requester ECS
+                                    File ecsFile = new File(macroDefinitions.getEcsFilePath() + "/" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + "_ecsServers" + ".txt");
+                                    FileReader fileReaderForECSFile = new FileReader(ecsFile);
+                                    BufferedReader bufferedReaderForECSFile = new BufferedReader(fileReaderForECSFile);
+                                    String line2;
+                                    String lineOfECS = "";
+                                    while((line2 = bufferedReaderForECSFile.readLine()) != null) {
+                                        lineOfECS += line2;
+                                    }
+
+
+                                    messageSendGet.sendMessage(outputStream, lineOfMetadata);
+                                    messageSendGet.sendMessage(outputStream, lineOfECS);
+                                System.out.println(lineOfECS);
+
+                                System.out.println("got to the end of primaryecssendmetadata");
+                            }
+                            catch (Exception e) {
+                                e.printStackTrace(System.out);
+                            }
+                            continue;
+
+                        case "IAMNEWCOORDINATOR":
+                            //set the macrodefinitions coordinator as the new coordinator
+                            String primaryECS = getMessage.split(" ")[1];
+                            System.out.println("SECONDARY APPROVES " + primaryECS);
+                            macroDefinitions.setCoordiantorServer(primaryECS);
+
+                            continue;
+
                         default:
                             messageSendGet.sendMessage(outputStream, "error unknown command!");
                     }
