@@ -6,7 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="8c4dc78a-76c9-48ce-b82f-e95112169c8c" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ECS/src/main/java/config.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../ECS/src/main/java/config.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../ECS/src/main/java/ecs/ECSServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/../ECS/src/main/java/ecs/ECSServer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ECS/target/cdb-ecs-1.0-SNAPSHOT.jar" beforeDir="false" afterPath="$PROJECT_DIR$/../ECS/target/cdb-ecs-1.0-SNAPSHOT.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ECS/target/classes/ecs/ECSServer.class" beforeDir="false" afterPath="$PROJECT_DIR$/../ECS/target/classes/ecs/ECSServer.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ECS/target/original-cdb-ecs-1.0-SNAPSHOT.jar" beforeDir="false" afterPath="$PROJECT_DIR$/../ECS/target/original-cdb-ecs-1.0-SNAPSHOT.jar" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
