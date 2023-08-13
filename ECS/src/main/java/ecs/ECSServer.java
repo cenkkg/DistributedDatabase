@@ -142,9 +142,9 @@ public class ECSServer {
             // ****************************************************************************************************
             // SHUTDOWN HOOK
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                String targetECS = "";
                 if(macroDefinitions.getListenAddress().equals(macroDefinitions.getCoordiantorServer().split(":")[0]) &&
                         (Integer.toString(macroDefinitions.getServerPort())).equals(macroDefinitions.getCoordiantorServer().split(":")[1])) {
-                    String targetECS = "";
                     try {
                         File fileForECSServers1 = new File(macroDefinitions.getEcsFilePath() + "/" + macroDefinitions.getListenAddress() + "_" + macroDefinitions.getServerPort() + "_ecsServers" + ".txt");
                         FileReader fileReaderForECSServers1 = new FileReader(fileForECSServers1);
@@ -188,6 +188,32 @@ public class ECSServer {
                             messageSendGet.sendMessage(outputStreamForTargetECS, allECSServers);
                         }
                     } catch (Exception e) {}
+                }
+
+                // Starting new server
+                try {
+                    BufferedReader reader = new BufferedReader(new FileReader(macroDefinitions.getEcsServersFilePath()));
+                    String line = reader.readLine();
+
+                    while (line != null) {
+                        if(line.length() != 0){
+                            String newECSServer = line.split(" ")[0];
+                            if(targetECS == ""){
+                                System.out.println("TEST 1");
+                                String command = "java -jar target/cdb-ecs-1.0-SNAPSHOT.jar -a " + newECSServer.split(":")[0] + " -p " + newECSServer.split(":")[1] + " -c " + macroDefinitions.getCoordiantorServer() + " -ecsFilePath " + macroDefinitions.getEcsFilePath() + " -availableServers " + macroDefinitions.getEcsServersFilePath();
+                                Process process = Runtime.getRuntime().exec(command);
+                            }
+                            else {
+                                System.out.println("TEST 2");
+                                String command = "java -jar target/cdb-ecs-1.0-SNAPSHOT.jar -a " + newECSServer.split(":")[0] + " -p " + newECSServer.split(":")[1] + " -c " + targetECS + " -ecsFilePath " + macroDefinitions.getEcsFilePath() + " -availableServers " + macroDefinitions.getEcsServersFilePath();
+                                Process process = Runtime.getRuntime().exec(command);
+                            }
+                        }
+                        break;
+                    }
+                    reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }));
             // SHUTDOWN HOOK
